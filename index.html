@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="version" content="v5.3-stable">
+  <title>Clube do Livro - Seleção e Sorteio</title>
+  
+  <!-- Ícone da Aba -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            parchment: '#FBF9F4',
+            parchmentCard: '#F4EFE6',
+            bookBrown: '#3D2F28',
+            burgundy: '#832837',
+            burgundyLight: '#A33345',
+            gold: '#D4A359',
+            goldLight: '#F3E5AB',
+            forest: '#2C4A3E'
+          },
+          fontFamily: {
+            serif: ['Merriweather', 'Georgia', 'serif'],
+            sans: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+  
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body class="min-h-full flex flex-col bg-[#F9F6F0] text-[#332A24] selection:bg-burgundy selection:text-white">
+
+  <!-- ================= LOBBY DE ENTRADA / CRIAÇÃO DE SALA ================= -->
+  <div id="lobbyModal" class="fixed inset-0 bg-[#F9F6F0] flex items-center justify-center p-4 z-[100] hidden">
+    <div class="bg-white w-full max-w-md rounded-3xl p-8 shadow-2xl border border-stone-200 text-center space-y-6">
+      <div class="w-16 h-16 rounded-2xl bg-burgundy flex items-center justify-center text-gold shadow-sm mx-auto">
+        <i class="ph ph-books text-4xl"></i>
+      </div>
+      <div>
+        <h2 class="text-2xl font-serif font-bold text-stone-900 flex items-center justify-center gap-2">
+          <span>Clube do Livro</span>
+          <span class="text-[11px] font-mono font-semibold bg-burgundy/10 text-burgundy border border-burgundy/20 px-2 py-0.5 rounded-full">v5.3-stable</span>
+        </h2>
+        <p class="text-sm text-stone-500 mt-2">Crie uma nova sala para o seu grupo ou acesse uma existente.</p>
+      </div>
+      
+      <div class="space-y-4 pt-4">
+        <button onclick="createNewRoom()" class="w-full py-3.5 rounded-2xl bg-burgundy hover:bg-burgundyLight text-white font-bold text-sm shadow-md shadow-burgundy/20 transition flex items-center justify-center gap-2">
+          <i class="ph ph-plus-circle text-lg"></i> Criar Nova Sala do Zero
+        </button>
+        
+        <div class="relative flex items-center py-2">
+          <div class="flex-grow border-t border-stone-200"></div>
+          <span class="shrink-0 px-4 text-xs text-stone-400 uppercase tracking-widest font-bold">Ou</span>
+          <div class="flex-grow border-t border-stone-200"></div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <input id="lobbyRoomInput" type="text" onkeydown="if(event.key === 'Enter') joinExistingRoom()" placeholder="Código (Ex: A7X9K2)" class="flex-1 px-4 py-3.5 rounded-2xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-burgundy/40 uppercase font-mono text-center tracking-widest text-stone-700">
+          <button onclick="joinExistingRoom()" class="px-5 py-3.5 rounded-2xl bg-stone-800 hover:bg-black text-white font-bold text-sm transition">
+            Entrar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div id="mainApp" class="flex-1 flex flex-col hidden">
+    <header class="border-b border-[#E7DFD5] bg-[#FFFFFF]/80 backdrop-blur-md sticky top-0 z-40">
+      <div class="max-w-6xl mx-auto px-4 py-3 sm:px-6 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-burgundy flex items-center justify-center text-gold shadow-sm">
+            <i class="ph ph-books text-2xl"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h1 id="clubTitleHeader" class="font-serif font-bold text-lg text-[#2A1F1B] leading-tight">Clube do Livro</h1>
+              <span class="text-[10px] font-mono font-semibold bg-burgundy/10 text-burgundy border border-burgundy/20 px-1.5 py-0.5 rounded-md">v5.3-stable</span>
+              <button onclick="openEditClubNameModal()" title="Editar nome do clube" class="text-stone-400 hover:text-burgundy transition">
+                <i class="ph ph-pencil-simple text-sm"></i>
+              </button>
+            </div>
+            <p id="clubSubtitleHeader" class="text-xs text-stone-500">Conectando...</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
+          <button onclick="openHistoryModal()" title="Histórico de Livros Lidos" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 transition text-xs font-semibold shadow-sm text-stone-700">
+            <i class="ph ph-clock-counter-clockwise text-base text-burgundy"></i>
+            <span class="hidden sm:inline">Histórico</span>
+            <span id="historyCountBadge" class="hidden px-1.5 py-0.2 bg-burgundy/10 text-burgundy font-black text-[10px] rounded-full">0</span>
+          </button>
+
+          <div id="syncBadge" title="Conectando..." class="flex items-center justify-center w-7 h-7 rounded-full bg-amber-50 border border-amber-200 cursor-help transition-colors shadow-sm">
+            <span id="syncIndicator" class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
+          </div>
+
+          <button onclick="openShareModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition text-xs font-bold shadow-sm shadow-emerald-700/20">
+            <i class="ph ph-whatsapp-logo text-base"></i>
+            <span class="hidden sm:inline">Convidar</span>
+          </button>
+
+          <div class="relative">
+            <button onclick="toggleMemberDropdown()" class="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 transition text-xs font-semibold shadow-sm">
+              <i class="ph ph-user-circle text-base text-burgundy"></i>
+              <span id="activeMemberLabel" class="flex items-center gap-1.5 font-bold text-stone-800">Identificar-se</span>
+              <i class="ph ph-caret-down text-xs text-stone-400"></i>
+            </button>
+            
+            <div id="memberDropdown" class="hidden absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-xl border border-stone-200 py-2.5 px-2 z-50">
+              <div id="memberDropdownTitle" class="px-2 py-1 text-[11px] font-bold text-stone-400 uppercase tracking-wider">Perfil Vinculado:</div>
+              <div id="memberDropdownList" class="space-y-1.5 max-h-64 overflow-y-auto custom-scrollbar"></div>
+              <div class="pt-2 mt-2 border-t border-stone-100">
+                <button onclick="promptAddNewMember()" class="w-full py-2 px-2.5 rounded-xl text-xs font-bold text-burgundy hover:bg-burgundy/5 flex items-center justify-center gap-1.5 transition">
+                  <i class="ph ph-user-plus text-sm"></i>
+                  <span>+ Adicionar Outro Integrante</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <button onclick="openResetCycleModal()" title="Reiniciar rodada ou Próximo Mês" class="p-2 text-stone-400 hover:text-burgundy rounded-xl hover:bg-stone-100 transition">
+            <i class="ph ph-arrows-counter-clockwise text-lg"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-6 sm:px-6">
+      <div class="mb-8">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
+          <button onclick="changeStage('nominations')" id="stepBtn-nominations" class="flex items-center gap-3 p-3 rounded-2xl border transition-all text-left bg-white border-burgundy shadow-sm ring-1 ring-burgundy/20">
+            <div id="stepIcon-nominations" class="w-8 h-8 rounded-xl bg-burgundy text-white flex items-center justify-center font-bold text-sm shrink-0">1</div>
+            <div class="min-w-0">
+              <div class="text-xs font-bold text-stone-500 uppercase tracking-wider">Etapa 1</div>
+              <div class="text-sm font-semibold text-stone-900 truncate">Indicações</div>
+            </div>
+          </button>
+          <button onclick="changeStage('voting')" id="stepBtn-voting" class="flex items-center gap-3 p-3 rounded-2xl border transition-all text-left bg-white/60 border-stone-200 text-stone-400 hover:border-stone-300">
+            <div id="stepIcon-voting" class="w-8 h-8 rounded-xl bg-stone-100 text-stone-500 flex items-center justify-center font-bold text-sm shrink-0">2</div>
+            <div class="min-w-0">
+              <div class="text-xs font-bold text-stone-400 uppercase tracking-wider">Etapa 2</div>
+              <div class="text-sm font-semibold text-stone-700 truncate">Voto de Exclusão</div>
+            </div>
+          </button>
+          <button onclick="changeStage('results')" id="stepBtn-results" class="flex items-center gap-3 p-3 rounded-2xl border transition-all text-left bg-white/60 border-stone-200 text-stone-400 hover:border-stone-300">
+            <div id="stepIcon-results" class="w-8 h-8 rounded-xl bg-stone-100 text-stone-500 flex items-center justify-center font-bold text-sm shrink-0">3</div>
+            <div class="min-w-0">
+              <div class="text-xs font-bold text-stone-400 uppercase tracking-wider">Etapa 3</div>
+              <div class="text-sm font-semibold text-stone-700 truncate">Apuração</div>
+            </div>
+          </button>
+          <button onclick="changeStage('draw')" id="stepBtn-draw" class="flex items-center gap-3 p-3 rounded-2xl border transition-all text-left bg-white/60 border-stone-200 text-stone-400 hover:border-stone-300">
+            <div id="stepIcon-draw" class="w-8 h-8 rounded-xl bg-stone-100 text-stone-500 flex items-center justify-center font-bold text-sm shrink-0">4</div>
+            <div class="min-w-0">
+              <div class="text-xs font-bold text-stone-400 uppercase tracking-wider">Etapa 4</div>
+              <div class="text-sm font-semibold text-stone-700 truncate">O Sorteio</div>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <section id="section-nominations" class="space-y-6">
+        <div class="flex flex-wrap items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-[#EBE4D8] shadow-xs">
+          <div>
+            <span class="inline-block px-3 py-1 bg-burgundy/10 text-burgundy font-bold text-xs rounded-full uppercase tracking-wider mb-2">Primeira Fase</span>
+            <h2 class="text-2xl font-serif font-bold text-[#2A1F1B]">Indicação das Obras</h2>
+            <p id="nominationsSubtitleDesc" class="text-stone-600 text-sm mt-1 max-w-2xl">
+              Cada integrante indica <strong>dois livros</strong>: sua 1ª e 2ª opção.
+            </p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2.5">
+            <button onclick="promptAddNewMember()" class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs font-bold transition">
+              <i class="ph ph-user-plus text-sm"></i>
+              <span>+ Adicionar Integrante</span>
+            </button>
+            <span id="nominationCounterBadge" class="text-xs font-bold px-3 py-2 bg-stone-100 text-stone-700 rounded-xl border border-stone-200">0 membros concluídos</span>
+            <button onclick="proceedToVotingIfReady()" class="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-burgundy hover:bg-burgundyLight text-white text-sm font-bold shadow-md shadow-burgundy/20 transition">
+              <span>Avançar para Votação</span>
+              <i class="ph ph-arrow-right font-bold"></i>
+            </button>
+          </div>
+        </div>
+        <div id="membersGrid" class="space-y-8"></div>
+      </section>
+
+      <section id="section-voting" class="hidden space-y-6">
+        <div class="flex flex-wrap items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-[#EBE4D8] shadow-xs">
+          <div>
+            <span class="inline-block px-3 py-1 bg-rose-50 text-rose-700 font-bold text-xs rounded-full uppercase tracking-wider mb-2">Segunda Fase</span>
+            <h2 class="text-2xl font-serif font-bold text-[#2A1F1B]">Voto de Exclusão (Veto)</h2>
+            <p class="text-stone-600 text-sm mt-1 max-w-2xl">
+              Escolha <strong>1 livro de cada colega</strong> para excluir. A obra mais vetada de cada par será eliminada.
+            </p>
+          </div>
+          <div class="flex items-center gap-3">
+            <span id="votingProgressBadge" class="text-xs font-bold px-3 py-2 bg-stone-100 text-stone-700 rounded-xl border border-stone-200">0 votaram</span>
+            <button onclick="calculateAndAdvanceToResults()" class="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-forest hover:bg-emerald-800 text-white text-sm font-bold shadow-md transition">
+              <span>Apurar Votos</span>
+              <i class="ph ph-chart-bar-horizontal font-bold"></i>
+            </button>
+          </div>
+        </div>
+        <div class="bg-[#F3EDE2] p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4 border border-[#E2D7C7]">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold uppercase text-stone-600 flex items-center gap-1.5"><i class="ph ph-check-square-offset text-burgundy text-sm"></i> Integrantes & Status dos Votos:</span>
+            <div id="votingSelectorTabs" class="flex flex-wrap gap-1.5"></div>
+          </div>
+        </div>
+        <div id="votingCanvas" class="space-y-6"></div>
+      </section>
+
+      <section id="section-results" class="hidden space-y-6">
+        <div class="flex flex-wrap items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-[#EBE4D8] shadow-xs">
+          <div>
+            <span class="inline-block px-3 py-1 bg-amber-50 text-amber-800 font-bold text-xs rounded-full uppercase tracking-wider mb-2">Terceira Fase</span>
+            <h2 class="text-2xl font-serif font-bold text-[#2A1F1B]">Apuração & Regra de Desempate</h2>
+          </div>
+          <div class="flex items-center gap-3">
+            <button onclick="changeStage('draw')" class="flex items-center gap-2 px-6 py-3 rounded-2xl bg-gold hover:bg-amber-500 text-stone-900 text-sm font-bold shadow-md shadow-gold/30 transition">
+              <span>Ir para o Sorteio</span>
+              <i class="ph ph-sparkle text-lg font-bold"></i>
+            </button>
+          </div>
+        </div>
+        <div id="resultsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+        <div class="bg-gradient-to-br from-[#2D211C] to-[#1A1412] p-8 rounded-3xl text-white shadow-xl">
+          <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+            <div>
+              <span class="text-xs font-bold text-gold uppercase tracking-widest">Sobreviventes</span>
+              <h3 class="text-2xl font-serif font-bold">Obras Classificadas para o Sorteio</h3>
+            </div>
+            <button onclick="changeStage('draw')" class="px-5 py-2.5 rounded-xl bg-gold hover:bg-yellow-400 text-stone-900 font-bold text-sm transition">
+              Abrir Roleta de Sorteio 🎲
+            </button>
+          </div>
+          <div id="finalistsBannerList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4"></div>
+        </div>
+      </section>
+
+      <section id="section-draw" class="hidden space-y-6">
+        <div class="bg-white p-8 rounded-3xl border border-[#EBE4D8] shadow-sm text-center max-w-3xl mx-auto">
+          <span class="inline-block px-3 py-1 bg-gold/20 text-yellow-800 font-bold text-xs rounded-full uppercase tracking-wider mb-2">Momento Decisivo</span>
+          <h2 class="text-3xl font-serif font-bold text-[#2A1F1B]">O Grande Sorteio do Livro</h2>
+          <p class="text-stone-600 text-sm mt-2 max-w-lg mx-auto">
+            Uma obra finalista de cada integrante. Que a sorte decida a próxima leitura.
+          </p>
+          <div class="my-8">
+            <div id="rouletteCardsContainer" class="grid grid-cols-2 sm:grid-cols-5 gap-4 max-w-3xl mx-auto"></div>
+          </div>
+          <div class="flex flex-col items-center justify-center gap-3">
+            <button id="drawActionBtn" onclick="initiateDraw()" class="group relative px-8 py-4 rounded-2xl bg-burgundy hover:bg-burgundyLight text-white font-serif font-bold text-lg shadow-xl shadow-burgundy/30 transition-all hover:scale-105 active:scale-95 flex items-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100">
+              <i class="ph ph-dice-five text-2xl group-hover:rotate-180 transition-transform duration-500 text-gold"></i>
+              <span>Sortear Livro do Mês!</span>
+            </button>
+            <div id="drawChancesLabel" class="text-xs mt-2"></div>
+          </div>
+        </div>
+        <div id="winnerCardContainer" class="hidden max-w-2xl mx-auto"></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Modais Ocultos -->
+  <div id="bookSearchModal" class="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-white w-full max-w-lg rounded-3xl p-6 shadow-2xl border border-stone-200 space-y-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <span id="modalOptionBadge" class="text-[11px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-burgundy/10 text-burgundy">Opção</span>
+          <h3 id="modalMemberTitle" class="text-lg font-serif font-bold text-stone-900 mt-1">Indicar Livro</h3>
+        </div>
+        <button onclick="closeBookSearchModal()" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-500 flex items-center justify-center"><i class="ph ph-x text-lg"></i></button>
+      </div>
+      <div class="space-y-2">
+        <label class="text-xs font-bold uppercase text-stone-500">Buscar no Google Books</label>
+        <div class="relative">
+          <i class="ph ph-magnifying-glass absolute left-3.5 top-3 text-stone-400 text-lg"></i>
+          <input id="bookSearchInput" type="text" placeholder="Digite o título ou autor do livro..." oninput="handleBookSearchInput(this.value)" class="w-full pl-10 pr-10 py-2.5 rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-burgundy/40 focus:border-burgundy text-sm">
+        </div>
+      </div>
+      <div id="searchResultsList" class="max-h-64 overflow-y-auto custom-scrollbar space-y-2 pr-1">
+        <div class="text-center py-8 text-stone-400 text-xs">Busque sua obra pelo título ou autor...</div>
+      </div>
+      <div class="pt-2 border-t border-stone-100">
+        <details class="text-xs text-stone-500">
+          <summary class="cursor-pointer font-medium hover:text-burgundy">Não encontrou? Inserir manualmente</summary>
+          <div class="space-y-2.5 mt-3 pt-2">
+            <input id="manualTitle" type="text" onkeydown="if(event.key === 'Enter') applyManualBook()" placeholder="Título do Livro *" class="w-full px-3 py-2 rounded-lg border text-xs">
+            <input id="manualAuthor" type="text" onkeydown="if(event.key === 'Enter') applyManualBook()" placeholder="Autor(a)" class="w-full px-3 py-2 rounded-lg border text-xs">
+            <input id="manualCover" type="url" onkeydown="if(event.key === 'Enter') applyManualBook()" placeholder="URL da Capa (opcional)" class="w-full px-3 py-2 rounded-lg border text-xs">
+            <button onclick="applyManualBook()" class="w-full py-2 bg-stone-800 hover:bg-black text-white rounded-lg font-bold text-xs">Confirmar Livro Manual</button>
+          </div>
+        </details>
+      </div>
+    </div>
+  </div>
+
+  <div id="customPromptModal" class="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-[60] hidden">
+    <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-stone-200 space-y-4">
+      <h3 id="promptModalTitle" class="text-base font-bold text-stone-900">Editar</h3>
+      <input id="promptModalInput" type="text" onkeydown="if(event.key === 'Enter') closePromptModal(true)" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-burgundy/40 text-sm">
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="closePromptModal(false)" class="px-4 py-2 rounded-xl text-xs font-semibold text-stone-600 hover:bg-stone-100">Cancelar</button>
+        <button onclick="closePromptModal(true)" class="px-4 py-2 rounded-xl text-xs font-bold bg-burgundy hover:bg-burgundyLight text-white">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="confirmModal" class="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl border border-stone-200 space-y-4">
+      <div class="w-12 h-12 rounded-2xl bg-burgundy/10 text-burgundy flex items-center justify-center text-2xl mx-auto"><i class="ph ph-calendar-plus"></i></div>
+      <div class="text-center">
+        <h3 class="text-base font-bold text-stone-900">Novo Ciclo de Leitura</h3>
+      </div>
+      <div class="space-y-2 pt-2">
+        <button onclick="handleArchiveAndStartNewMonth()" class="w-full py-3 rounded-2xl bg-burgundy hover:bg-burgundyLight text-white text-xs font-bold transition flex items-center justify-center gap-2 shadow-md shadow-burgundy/20">
+          <i class="ph ph-archive-box text-base"></i><span>Salvar no Histórico & Começar Próximo Mês</span>
+        </button>
+        <button onclick="handleSoftResetOnly()" class="w-full py-2.5 rounded-xl border border-stone-200 text-stone-600 hover:bg-stone-50 text-xs font-semibold transition">Apenas limpar indicações atuais (sem arquivar)</button>
+        <button onclick="closeConfirmModal()" class="w-full py-2 rounded-xl text-xs text-stone-400 hover:text-stone-600">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE SAIR DO PERFIL -->
+  <div id="logoutModal" class="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-[60] hidden">
+    <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-stone-200 text-center space-y-4">
+      <div class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center text-2xl mx-auto shadow-xs">
+        <i class="ph ph-sign-out"></i>
+      </div>
+      <div>
+        <h3 class="text-lg font-serif font-bold text-stone-900">Sair do Perfil?</h3>
+        <p id="logoutModalDesc" class="text-xs text-stone-500 mt-2 leading-relaxed">Deseja realmente sair deste perfil neste aparelho?</p>
+      </div>
+      <div class="flex gap-2 pt-2">
+        <button onclick="closeLogoutModal()" class="flex-1 py-2.5 rounded-xl border border-stone-200 text-xs font-bold text-stone-600 hover:bg-stone-50 transition">
+          Cancelar
+        </button>
+        <button onclick="executeLogoutMember()" class="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition shadow-sm shadow-rose-600/20">
+          Sim, Sair
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="historyModal" class="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-white w-full max-w-2xl rounded-3xl p-6 shadow-2xl border border-stone-200 flex flex-col max-h-[85vh]">
+      <div class="flex items-center justify-between pb-3 border-b border-stone-100">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-2xl bg-burgundy/10 text-burgundy flex items-center justify-center text-2xl"><i class="ph ph-books"></i></div>
+          <div><h3 class="text-base font-serif font-bold text-stone-900 leading-tight">Histórico de Leituras</h3></div>
+        </div>
+        <button onclick="closeHistoryModal()" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-500 flex items-center justify-center"><i class="ph ph-x text-sm"></i></button>
+      </div>
+      <div id="historyListContainer" class="flex-1 overflow-y-auto custom-scrollbar my-4 space-y-3 pr-1"></div>
+      <div class="pt-3 border-t border-stone-100 flex justify-between items-center text-xs text-stone-400">
+        <span id="historyTotalCountText">Nenhum livro arquivado ainda.</span>
+        <button onclick="closeHistoryModal()" class="px-4 py-2 bg-stone-100 hover:bg-stone-200 rounded-xl text-stone-700 font-semibold transition">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="welcomeModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-white w-full max-w-md rounded-3xl p-6 sm:p-8 shadow-2xl border border-stone-200 space-y-5 text-center relative">
+      <div class="w-14 h-14 rounded-2xl bg-burgundy/10 text-burgundy flex items-center justify-center text-3xl mx-auto"><i class="ph ph-book-open-user"></i></div>
+      <div>
+        <span class="text-[10px] font-extrabold uppercase tracking-widest text-burgundy bg-burgundy/10 px-3 py-1 rounded-full">Clube do Livro</span>
+        <h3 class="text-xl font-serif font-bold text-stone-900 mt-2">Bem-vindo(a) à Votação!</h3>
+        <p class="text-xs text-stone-500 mt-1 max-w-xs mx-auto">Selecione quem você é ou adicione seu nome para começar a participar.</p>
+      </div>
+      <div id="welcomeMemberList" class="grid grid-cols-2 gap-3 text-left"></div>
+      <div class="pt-2">
+        <button onclick="promptAddNewMember()" class="w-full py-3 rounded-xl border-2 border-dashed border-stone-300 text-stone-600 hover:border-burgundy hover:text-burgundy hover:bg-burgundy/5 text-sm font-bold transition flex items-center justify-center gap-2">
+          <i class="ph ph-user-plus text-lg"></i> + Adicionar Novo Integrante
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="shareModal" class="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl border border-stone-200 space-y-4">
+      <div class="flex items-center justify-between pb-2 border-b border-stone-100">
+        <div class="flex items-center gap-2">
+          <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-lg"><i class="ph ph-whatsapp-logo"></i></div>
+          <div><h3 class="text-base font-bold text-stone-900">Convidar Integrantes</h3></div>
+        </div>
+        <button onclick="closeShareModal()" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-500 flex items-center justify-center"><i class="ph ph-x text-sm"></i></button>
+      </div>
+      <p class="text-xs text-stone-600 text-center bg-stone-50 p-3 rounded-xl border border-stone-200">
+        A sua sala é: <strong class="text-burgundy text-sm ml-1" id="shareRoomCodeDisplay">...</strong>
+      </p>
+      <div class="flex items-center gap-2">
+        <input id="shareLinkInput" type="text" readonly class="w-full px-3 py-2.5 rounded-xl border border-stone-300 text-xs bg-stone-50 text-stone-700 select-all focus:outline-none">
+        <button onclick="copyShareLink()" class="px-3.5 py-2.5 rounded-xl bg-stone-800 hover:bg-black text-white text-xs font-bold shrink-0 transition flex items-center gap-1.5"><i class="ph ph-copy text-sm"></i><span>Copiar</span></button>
+      </div>
+      <div class="pt-2">
+        <button onclick="shareDirectToWhatsApp()" class="w-full py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md shadow-emerald-700/20 transition"><i class="ph ph-whatsapp-logo text-base"></i><span>Abrir e Enviar no WhatsApp</span></button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toastContainer" class="fixed bottom-5 left-5 z-[70] flex flex-col gap-2 pointer-events-none"></div>
+  
+  <div id="versionBadge" class="fixed bottom-3 right-3 text-[11px] text-stone-600 bg-stone-100/90 border border-stone-300 px-2.5 py-0.5 rounded-full font-mono select-none shadow-xs z-30 opacity-80 hover:opacity-100 transition">v5.3-stable</div>
+
+  <!-- SCRIPTS DA APLICAÇÃO (ordem de dependência) -->
+  <script src="js/config.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/ui-core.js"></script>
+  <script src="js/firebase.js"></script>
+  <script src="js/nominations.js"></script>
+  <script src="js/voting.js"></script>
+  <script src="js/results.js"></script>
+  <script src="js/draw.js"></script>
+  <script src="js/members.js"></script>
+  <script src="js/modals.js"></script>
+  <script src="js/sharing.js"></script>
+
+</body>
+</html>
