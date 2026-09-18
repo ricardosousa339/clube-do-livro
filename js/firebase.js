@@ -75,6 +75,7 @@ async function initDatabase() {
           updateRoulettePresenceIndicators();
         }
       }
+      if (typeof window.refreshAdminUIIfOpen === 'function') window.refreshAdminUIIfOpen();
       updateSyncStatus(true);
       
       if (isFirstSync) {
@@ -271,6 +272,7 @@ function handleIncomingState(data) {
          openWelcomeModal();
      }
   }
+  if (typeof window.refreshAdminUIIfOpen === 'function') window.refreshAdminUIIfOpen();
 }
 
 window.persistState = async function(granularPath) {

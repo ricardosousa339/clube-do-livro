@@ -420,9 +420,125 @@
     </div>
   </div>
 
+  <!-- MODAL DE AUTENTICAÇÃO / CRIAÇÃO DE SENHA DO ADMIN -->
+  <div id="adminAuthModal" class="fixed inset-0 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4 z-[80] hidden">
+    <div class="bg-stone-900 border border-stone-700 text-stone-100 w-full max-w-md rounded-3xl p-6 sm:p-7 shadow-2xl space-y-5">
+      <div class="flex items-center justify-between pb-3 border-b border-stone-800">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center text-xl shrink-0">
+            <i class="ph ph-shield-check"></i>
+          </div>
+          <div>
+            <h3 id="adminAuthTitle" class="text-base font-bold text-stone-100">Painel de Administrador</h3>
+            <p id="adminAuthSubtitle" class="text-xs text-stone-400">Acesso restrito da sala</p>
+          </div>
+        </div>
+        <button onclick="closeAdminAuthModal()" class="w-8 h-8 rounded-full bg-stone-800 hover:bg-stone-700 text-stone-400 hover:text-stone-200 flex items-center justify-center transition">
+          <i class="ph ph-x text-sm"></i>
+        </button>
+      </div>
+
+      <form id="adminAuthForm" onsubmit="handleAdminAuthSubmit(event)" class="space-y-4">
+        <div class="space-y-1.5">
+          <label id="adminAuthLabel" class="text-xs font-semibold text-stone-300">Senha de Administrador</label>
+          <div class="relative">
+            <input id="adminAuthInput" type="password" required autocomplete="current-password" placeholder="Digite a senha..." class="w-full px-3.5 py-2.5 rounded-xl bg-stone-800/90 border border-stone-700 text-stone-100 text-sm focus:outline-none focus:border-amber-500 transition placeholder:text-stone-500">
+            <button type="button" onclick="toggleAdminPasswordVisibility('adminAuthInput')" class="absolute right-3 top-2.5 text-stone-400 hover:text-stone-200 text-lg">
+              <i class="ph ph-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Campo de confirmação para criação ou troca de senha -->
+        <div id="adminAuthConfirmGroup" class="space-y-1.5 hidden">
+          <label class="text-xs font-semibold text-stone-300">Confirme a Senha</label>
+          <div class="relative">
+            <input id="adminAuthConfirmInput" type="password" autocomplete="new-password" placeholder="Repita a senha..." class="w-full px-3.5 py-2.5 rounded-xl bg-stone-800/90 border border-stone-700 text-stone-100 text-sm focus:outline-none focus:border-amber-500 transition placeholder:text-stone-500">
+            <button type="button" onclick="toggleAdminPasswordVisibility('adminAuthConfirmInput')" class="absolute right-3 top-2.5 text-stone-400 hover:text-stone-200 text-lg">
+              <i class="ph ph-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <div id="adminAuthError" class="text-xs text-rose-400 font-medium hidden"></div>
+
+        <div class="flex gap-2 pt-2">
+          <button type="button" onclick="closeAdminAuthModal()" class="flex-1 py-2.5 rounded-xl border border-stone-700 hover:bg-stone-800 text-stone-300 text-xs font-bold transition">
+            Cancelar
+          </button>
+          <button id="adminAuthSubmitBtn" type="submit" class="flex-1 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-stone-950 text-xs font-bold transition shadow-sm">
+            Entrar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL DO PAINEL PRINCIPAL DE ADMIN -->
+  <div id="adminModal" class="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 z-[75] hidden">
+    <div class="bg-stone-900 border border-stone-800 text-stone-100 w-full max-w-5xl rounded-3xl shadow-2xl flex flex-col h-[92vh] overflow-hidden">
+      <!-- Header -->
+      <div class="px-5 py-4 bg-stone-950 border-b border-stone-800 flex flex-wrap items-center justify-between gap-3 shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center text-xl shrink-0">
+            <i class="ph ph-terminal-window"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="text-base font-bold text-stone-100 tracking-wide font-mono">PAINEL ADMIN</h3>
+              <span id="adminRoomBadge" class="text-[11px] font-mono font-semibold bg-stone-800 text-amber-400 border border-stone-700 px-2 py-0.5 rounded-md">...</span>
+            </div>
+            <p id="adminClubNameDisplay" class="text-xs text-stone-400 truncate max-w-xs sm:max-w-md">Clube do Livro</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button onclick="promptChangeAdminPassword()" class="px-3 py-1.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-300 text-xs font-semibold transition flex items-center gap-1.5">
+            <i class="ph ph-key text-sm text-amber-400"></i>
+            <span class="hidden sm:inline">Mudar Senha</span>
+          </button>
+          <button onclick="adminLogout()" class="px-3 py-1.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-300 text-xs font-semibold transition flex items-center gap-1.5">
+            <i class="ph ph-sign-out text-sm text-rose-400"></i>
+            <span class="hidden sm:inline">Deslogar Admin</span>
+          </button>
+          <button onclick="closeAdminModal()" class="w-8 h-8 rounded-full bg-stone-800 hover:bg-stone-700 text-stone-400 hover:text-stone-200 flex items-center justify-center transition">
+            <i class="ph ph-x text-sm"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="px-5 py-2 bg-stone-900/90 border-b border-stone-800 flex items-center gap-1 sm:gap-2 overflow-x-auto custom-scrollbar-dark shrink-0">
+        <button onclick="switchAdminTab('members')" id="adminTabBtn-members" class="admin-tab-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap bg-amber-500/20 text-amber-300 border border-amber-500/40">
+          <i class="ph ph-users"></i><span>Membros</span>
+        </button>
+        <button onclick="switchAdminTab('nominations')" id="adminTabBtn-nominations" class="admin-tab-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap text-stone-400 hover:text-stone-200 hover:bg-stone-800/60">
+          <i class="ph ph-books"></i><span>Indicações</span>
+        </button>
+        <button onclick="switchAdminTab('votes')" id="adminTabBtn-votes" class="admin-tab-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap text-stone-400 hover:text-stone-200 hover:bg-stone-800/60">
+          <i class="ph ph-check-square-offset"></i><span>Votos / Vetos</span>
+        </button>
+        <button onclick="switchAdminTab('backup')" id="adminTabBtn-backup" class="admin-tab-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap text-stone-400 hover:text-stone-200 hover:bg-stone-800/60">
+          <i class="ph ph-floppy-disk"></i><span>Backup & Restore</span>
+        </button>
+        <button onclick="switchAdminTab('presence')" id="adminTabBtn-presence" class="admin-tab-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap text-stone-400 hover:text-stone-200 hover:bg-stone-800/60">
+          <i class="ph ph-activity"></i><span>Presença & Logs</span>
+        </button>
+        <button onclick="switchAdminTab('danger')" id="adminTabBtn-danger" class="admin-tab-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap text-rose-400/80 hover:text-rose-300 hover:bg-rose-950/40">
+          <i class="ph ph-warning"></i><span>Danger Zone</span>
+        </button>
+      </div>
+
+      <!-- Tab Contents Container -->
+      <div id="adminTabContent" class="flex-1 overflow-y-auto custom-scrollbar-dark p-5 sm:p-6 space-y-6">
+        <!-- Preenchido dinamicamente por js/admin.js -->
+      </div>
+    </div>
+  </div>
+
   <div id="toastContainer" class="fixed bottom-5 left-5 z-[70] flex flex-col gap-2 pointer-events-none"></div>
   
-  <div id="versionBadge" class="fixed bottom-3 right-3 text-[11px] text-stone-600 bg-stone-100/90 border border-stone-300 px-2.5 py-0.5 rounded-full font-mono select-none shadow-xs z-30 opacity-80 hover:opacity-100 transition">v5.3-stable</div>
+  <div id="versionBadge" class="fixed bottom-3 right-3 text-[11px] text-stone-600 bg-stone-100/90 border border-stone-300 px-2.5 py-0.5 rounded-full font-mono select-none shadow-xs z-30 opacity-80 hover:opacity-100 transition cursor-pointer">v5.3-stable</div>
 
   <!-- SCRIPTS DA APLICAÇÃO (ordem de dependência) -->
   <script src="js/config.js"></script>
@@ -436,6 +552,7 @@
   <script src="js/members.js"></script>
   <script src="js/modals.js"></script>
   <script src="js/sharing.js"></script>
+  <script src="js/admin.js"></script>
 
 </body>
 </html>
