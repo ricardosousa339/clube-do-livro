@@ -19,3 +19,32 @@
       50% { box-shadow: 0 0 0 12px rgba(212, 163, 89, 0); }
     }
     .pulse-gold { animation: pulse-gold 2.2s infinite; }
+
+    /* Geladeira / Ice badge shimmer */
+    @keyframes frost-shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    .frost-badge {
+      background: linear-gradient(90deg, rgba(224, 242, 254, 0.8), rgba(186, 230, 253, 1), rgba(224, 242, 254, 0.8));
+      background-size: 200% 100%;
+      animation: frost-shimmer 3s ease-in-out infinite;
+    }
+
+    /* Drop zone drag-over highlight */
+    .drop-active {
+      border-color: #832837 !important;
+      background-color: rgba(131, 40, 55, 0.05) !important;
+      transform: scale(1.01);
+      transition: all 0.2s ease;
+    }
+
+    /* Hall da Fama card hover */
+    .hall-card {
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .hall-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
+    }
+

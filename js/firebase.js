@@ -202,6 +202,19 @@ function hasContentChanged(oldState, newState) {
   const newLogs = newState.drawLogs || [];
   if (oldLogs.length !== newLogs.length) return true;
 
+  // 9. Geladeira
+  const oldFridge = oldState.fridge || [];
+  const newFridge = newState.fridge || [];
+  if (oldFridge.length !== newFridge.length) return true;
+
+  // 10. Ciclo Fechado
+  const oldCycle = oldState.closedCycle || {};
+  const newCycle = newState.closedCycle || {};
+  if (Boolean(oldCycle.enabled) !== Boolean(newCycle.enabled)) return true;
+  const oldCycleWinners = (oldCycle.winners || []).join(',');
+  const newCycleWinners = (newCycle.winners || []).join(',');
+  if (oldCycleWinners !== newCycleWinners) return true;
+
   return false; // Apenas presença ou timestamp mudou!
 }
 
@@ -222,6 +235,26 @@ function handleIncomingState(data) {
   
   if (!window.clubState.members) window.clubState.members = [];
   if (!window.clubState.votes) window.clubState.votes = {};
+  if (!window.clubState.fridge) window.clubState.fridge = [];
+  if (!window.clubState.closedCycle) window.clubState.closedCycle = { enabled: true, winners: [] };
+  // Inicializa campeões a partir do histórico existente (ex: primeiro sorteio já ocorrido no clube)
+  if (window.clubState.closedCycle.enabled && (!window.clubState.closedCycle.winners || window.clubState.closedCycle.winners.length === 0)) {
+    const hist = window.clubState.history || [];
+    const mems = window.clubState.members || [];
+    if (hist.length > 0 && mems.length > 0) {
+      window.clubState.closedCycle.winners = window.clubState.closedCycle.winners || [];
+      for (const h of hist) {
+        if (window.clubState.closedCycle.winners.length >= mems.length) break;
+        const winnerMember = mems.find(m => m.name === h.winner?.member || m.id === h.winner?.memberId);
+        if (winnerMember && !window.clubState.closedCycle.winners.includes(winnerMember.id)) {
+          window.clubState.closedCycle.winners.push(winnerMember.id);
+        }
+      }
+      if (window.clubState.closedCycle.winners.length >= mems.length) {
+        window.clubState.closedCycle.winners = [];
+      }
+    }
+  }
 
   if (data.drawEvent && data.drawEvent.timestamp && data.drawEvent.timestamp !== window.lastDrawTimestamp) {
       const isFirstLoad = (window.lastDrawTimestamp === 0);

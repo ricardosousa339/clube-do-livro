@@ -636,6 +636,7 @@ function renderAdminNominationsTab(container) {
 }
 
 function renderAdminBookCard(member, slot, book) {
+  const bookKey = slot === 1 ? 'book1' : 'book2';
   if (!book) {
     return `
       <div class="p-3 rounded-xl bg-stone-900 border border-dashed border-stone-800 text-stone-600 flex items-center gap-3">
@@ -662,9 +663,14 @@ function renderAdminBookCard(member, slot, book) {
           <p class="text-[11px] text-stone-400 truncate">${escapeHtml(book.author || 'Autor desconhecido')}</p>
         </div>
       </div>
-      <button onclick="adminClearSingleBook('${member.id}', ${slot})" title="Remover apenas este livro" class="p-1.5 rounded-lg bg-stone-800 hover:bg-rose-950/60 text-stone-400 hover:text-rose-400 transition shrink-0">
-        <i class="ph ph-x text-xs"></i>
-      </button>
+      <div class="flex items-center gap-1 shrink-0">
+        <button onclick="adminEditBook('${member.id}', '${bookKey}')" title="Editar dados do livro" class="p-1.5 rounded-lg bg-stone-800 hover:bg-amber-900/40 text-stone-400 hover:text-amber-400 transition">
+          <i class="ph ph-pencil-simple text-xs"></i>
+        </button>
+        <button onclick="adminClearSingleBook('${member.id}', ${slot})" title="Remover apenas este livro" class="p-1.5 rounded-lg bg-stone-800 hover:bg-rose-950/60 text-stone-400 hover:text-rose-400 transition">
+          <i class="ph ph-x text-xs"></i>
+        </button>
+      </div>
     </div>
   `;
 }
@@ -1090,6 +1096,13 @@ async function adminClearDrawLogs() {
 // TAB 6: DANGER ZONE
 // ==========================================
 function renderAdminDangerTab(container) {
+  const cycle = window.clubState.closedCycle || { enabled: false, winners: [] };
+  const members = window.clubState.members || [];
+  const champNames = (cycle.winners || []).map(id => {
+    const m = members.find(mem => mem.id === id);
+    return m ? m.name : id;
+  });
+
   container.innerHTML = `
     <div class="space-y-6">
       <div class="pb-4 border-b border-rose-900/40">
@@ -1101,6 +1114,37 @@ function renderAdminDangerTab(container) {
       </div>
 
       <div class="space-y-4">
+        <!-- Ciclo Fechado -->
+        <div class="p-4 rounded-2xl bg-stone-950/80 border border-amber-800/40 space-y-3">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h5 class="font-bold text-xs text-amber-300 flex items-center gap-1.5"><i class="ph ph-circle-notch"></i> Ciclo Fechado (Campeão Vira Jurado)</h5>
+              <p class="text-[11px] text-stone-400 mt-0.5 max-w-lg">
+                Quando ativado, quem já venceu o sorteio sai da roleta nos meses seguintes, até que todos tenham vencido uma vez.
+              </p>
+            </div>
+            <button onclick="adminToggleClosedCycle()" class="px-4 py-2 rounded-xl ${cycle.enabled ? 'bg-emerald-600/20 text-emerald-300 border border-emerald-500/40' : 'bg-stone-800 text-stone-400 border border-stone-700'} font-bold text-xs transition shrink-0">
+              ${cycle.enabled ? '✓ Ativado' : '○ Desativado'}
+            </button>
+          </div>
+          ${cycle.enabled ? `
+            <div class="pt-2 border-t border-stone-800">
+              <p class="text-[11px] text-stone-400 mb-2">Campeões do ciclo atual (${champNames.length}/${members.length}):</p>
+              <div class="flex flex-wrap gap-1.5 mb-3">
+                ${champNames.length > 0 ? champNames.map(n => `<span class="text-[10px] font-bold bg-gold/20 text-gold px-2 py-0.5 rounded-full">🏆 ${escapeHtml(n)}</span>`).join('') : '<span class="text-[10px] text-stone-600 italic">Nenhum campeão ainda</span>'}
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <button onclick="adminResetClosedCycle()" class="px-3 py-1.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-300 text-xs font-semibold transition">
+                  <i class="ph ph-arrow-counter-clockwise text-xs"></i> Reiniciar Ciclo
+                </button>
+                <button onclick="adminInitCycleFromHistory()" class="px-3 py-1.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-300 text-xs font-semibold transition">
+                  <i class="ph ph-clock-counter-clockwise text-xs"></i> Importar do Histórico
+                </button>
+              </div>
+            </div>
+          ` : ''}
+        </div>
+
         <!-- Resetar Rodada -->
         <div class="p-4 rounded-2xl bg-stone-950/80 border border-stone-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
@@ -1217,8 +1261,96 @@ async function adminDeleteEntireRoom() {
 }
 
 // ==========================================
+// ADMIN: EDIÇÃO DE LIVRO
+// ==========================================
+function adminEditBook(memberId, bookKey) {
+  const member = window.clubState?.members?.find(m => m.id === memberId);
+  if (!member || !member[bookKey]) return showToast('Livro não encontrado.', 'warning');
+
+  const book = member[bookKey];
+  // Fecha o painel admin temporariamente e abre o editor de livro
+  closeAdminModal();
+  openBookEditPreview(book, memberId, bookKey);
+}
+
+// ==========================================
+// ADMIN: CICLO FECHADO
+// ==========================================
+async function adminToggleClosedCycle() {
+  if (!window.clubState.closedCycle) {
+    window.clubState.closedCycle = { enabled: true, winners: [] };
+  }
+  window.clubState.closedCycle.enabled = !window.clubState.closedCycle.enabled;
+  
+  invalidateRenderCache();
+  await persistState('state.closedCycle');
+  renderAdminCurrentTab();
+  if (typeof window.renderUI === 'function') window.renderUI();
+  showToast(`Ciclo Fechado ${window.clubState.closedCycle.enabled ? 'ativado' : 'desativado'}.`, 'success');
+}
+
+async function adminResetClosedCycle() {
+  if (!confirm('Deseja reiniciar o Ciclo Fechado? Todos voltarão a participar da roleta.')) return;
+  if (!window.clubState.closedCycle) window.clubState.closedCycle = { enabled: true, winners: [] };
+  window.clubState.closedCycle.winners = [];
+  
+  invalidateRenderCache();
+  await persistState('state.closedCycle');
+  renderAdminCurrentTab();
+  if (typeof window.renderUI === 'function') window.renderUI();
+  showToast('Ciclo reiniciado! Todos voltaram para a roleta.', 'success');
+}
+
+async function adminInitCycleFromHistory() {
+  // Inicializar ciclo fechado a partir do histórico existente
+  const history = window.clubState.history || [];
+  const members = window.clubState.members || [];
+  
+  if (!window.clubState.closedCycle) window.clubState.closedCycle = { enabled: true, winners: [] };
+  window.clubState.closedCycle.winners = [];
+
+  // Pega os vencedores mais recentes do histórico até completar um ciclo
+  for (const h of history) {
+    if (window.clubState.closedCycle.winners.length >= members.length) break;
+    const winnerMember = members.find(m => m.name === h.winner?.member);
+    if (winnerMember && !window.clubState.closedCycle.winners.includes(winnerMember.id)) {
+      window.clubState.closedCycle.winners.push(winnerMember.id);
+    }
+  }
+
+  invalidateRenderCache();
+  await persistState('state.closedCycle');
+  renderAdminCurrentTab();
+  if (typeof window.renderUI === 'function') window.renderUI();
+  showToast(`Ciclo inicializado com ${window.clubState.closedCycle.winners.length} campeão(ões) do histórico.`, 'success');
+}
+
+// ==========================================
 // INICIALIZAÇÃO
 // ==========================================
 window.addEventListener('DOMContentLoaded', () => {
   initAdminBadgeTrigger();
+
+  // Inicializar ciclo fechado a partir do histórico se tiver dados
+  setTimeout(() => {
+    const cycle = window.clubState.closedCycle;
+    if (cycle && cycle.enabled && cycle.winners.length === 0) {
+      const history = window.clubState.history || [];
+      const members = window.clubState.members || [];
+      if (history.length > 0 && members.length > 0) {
+        // Auto-preenche campeões do histórico recente
+        for (const h of history) {
+          if (cycle.winners.length >= members.length) break;
+          const winnerMember = members.find(m => m.name === h.winner?.member);
+          if (winnerMember && !cycle.winners.includes(winnerMember.id)) {
+            cycle.winners.push(winnerMember.id);
+          }
+        }
+        // Se completou o ciclo, reinicia
+        if (cycle.winners.length >= members.length && members.length > 0) {
+          cycle.winners = [];
+        }
+      }
+    }
+  }, 3000); // Aguarda sync inicial
 });

@@ -10,6 +10,8 @@ function renderNominationsGrid() {
   const me = window.clubState.members.find(m => m.id === window.localCurrentUser);
   const others = window.clubState.members.filter(m => m.id !== window.localCurrentUser);
 
+  const fridge = window.clubState.fridge || [];
+
   const signature = JSON.stringify({
     meId: me?.id,
     meName: me?.name,
@@ -18,7 +20,8 @@ function renderNominationsGrid() {
     isEditing: window.isEditingBooks,
     completedCount,
     total: window.clubState.members.length,
-    others: others.map(o => `${o.id}:${o.name}:${Boolean(o.book1 && o.book2)}`)
+    others: others.map(o => `${o.id}:${o.name}:${Boolean(o.book1 && o.book2)}`),
+    fridgeCount: fridge.length
   });
 
   const counterBadge = document.getElementById('nominationCounterBadge');
@@ -73,6 +76,11 @@ function renderNominationsGrid() {
           </div>
         </div>
       `;
+
+      // Banner da Geladeira — só mostra se há livros na geladeira e o membro tem slots vazios
+      if (fridge.length > 0 && (!me.book1 || !me.book2)) {
+        html += renderFridgeBanner(me);
+      }
     }
   }
 
@@ -95,6 +103,66 @@ function renderNominationsGrid() {
       </div>`;
   }
   grid.innerHTML = html;
+}
+
+// ==========================================
+// BANNER DA GELADEIRA (Repescagem)
+// ==========================================
+function renderFridgeBanner(me) {
+  const fridge = window.clubState.fridge || [];
+  if (fridge.length === 0) return '';
+
+  let items = fridge.map((item, idx) => `
+    <div class="flex items-center gap-3 p-3 rounded-xl bg-white/80 border border-sky-200/60 hover:border-sky-300 transition group">
+      <img src="${item.cover || DEFAULT_BOOK_COVER}" class="w-10 h-14 object-cover rounded-lg shadow-xs shrink-0" loading="lazy" decoding="async" onerror="this.onerror=null; this.src=DEFAULT_BOOK_COVER;">
+      <div class="min-w-0 flex-1">
+        <h5 class="text-xs font-bold text-stone-900 truncate">${escapeHtml(item.title)}</h5>
+        <p class="text-[10px] text-stone-500 truncate">${escapeHtml(item.author || '')} • Indicação de ${escapeHtml(item.memberName || 'membro')}</p>
+      </div>
+      <button onclick="reIndicateFromFridge(${idx})" class="shrink-0 px-3 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-[10px] font-bold transition flex items-center gap-1 shadow-sm">
+        <i class="ph ph-arrow-arc-left text-sm"></i> Re-indicar
+      </button>
+    </div>
+  `).join('');
+
+  return `
+    <div class="bg-gradient-to-br from-sky-50 to-sky-100/40 rounded-2xl p-5 border border-sky-200 shadow-sm mb-6">
+      <div class="flex items-center gap-2 mb-3">
+        <div class="w-8 h-8 rounded-xl bg-sky-600 text-white flex items-center justify-center text-lg"><i class="ph ph-snowflake"></i></div>
+        <div>
+          <h4 class="text-sm font-bold text-sky-900">Geladeira</h4>
+          <p class="text-[10px] text-sky-700">Livros que quase ganharam no mês passado — re-indique com um toque!</p>
+        </div>
+      </div>
+      <div class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
+        ${items}
+      </div>
+    </div>
+  `;
+}
+
+function reIndicateFromFridge(fridgeIndex) {
+  const fridge = window.clubState.fridge || [];
+  const item = fridge[fridgeIndex];
+  if (!item) return;
+
+  const me = window.clubState.members.find(m => m.id === window.localCurrentUser);
+  if (!me) return showToast('Identifique-se para re-indicar.', 'warning');
+
+  // Preenche o primeiro slot vazio
+  const bookKey = !me.book1 ? 'book1' : (!me.book2 ? 'book2' : null);
+  if (!bookKey) return showToast('Ambos os slots estão preenchidos. Remova um livro primeiro.', 'warning');
+
+  me[bookKey] = { title: item.title, author: item.author, cover: item.cover, description: '' };
+
+  // Remove da geladeira
+  window.clubState.fridge.splice(fridgeIndex, 1);
+
+  if (me.book1 && me.book2) window.isEditingBooks = false;
+  invalidateRenderCache();
+  playSound('advance');
+  persistState();
+  showToast(`"${item.title}" saiu da geladeira e foi para sua ${bookKey === 'book1' ? '1ª' : '2ª'} opção!`, 'success');
 }
 
 function renderBigBookSlot(member, bookKey, label) {
@@ -121,6 +189,7 @@ function renderBigBookSlot(member, bookKey, label) {
         </div>
         <div class="flex items-center justify-center sm:justify-start gap-2 mt-5">
           <button onclick="openBookSearchModal('${member.id}', '${bookKey}', '${label}')" class="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-xs font-bold transition"><i class="ph ph-swap"></i> Trocar Livro</button>
+          <button onclick="openBookEditPreview({title:'${escapeHtml(book.title).replace(/'/g, "\\'")}', author:'${escapeHtml(book.author || '').replace(/'/g, "\\'")}', cover:'${(book.cover || '').replace(/'/g, "\\'")}', description:''}, '${member.id}', '${bookKey}')" title="Editar dados do livro" class="flex items-center justify-center p-2.5 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-xl transition"><i class="ph ph-pencil-simple text-lg"></i></button>
           <button onclick="removeBook('${member.id}', '${bookKey}')" title="Remover indicação" class="flex items-center justify-center p-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl transition"><i class="ph ph-trash text-lg"></i></button>
         </div>
       </div>
@@ -141,10 +210,19 @@ function openBookSearchModal(memberId, bookKey, label) {
   document.getElementById('modalOptionBadge').innerText = bookKey === 'book1' ? 'Opção Principal' : 'Opção Reserva';
   document.getElementById('bookSearchInput').value = '';
   document.getElementById('searchResultsList').innerHTML = `<div class="text-center py-8 text-stone-400 text-xs">Busque sua obra pelo título ou autor...</div>`;
+  // Garantir que a tela de busca esteja visível e a de edição escondida
+  document.getElementById('bookSearchSection').classList.remove('hidden');
+  document.getElementById('bookEditSection').classList.add('hidden');
   document.getElementById('bookSearchModal').classList.remove('hidden');
   setTimeout(() => document.getElementById('bookSearchInput').focus(), 50);
 }
-function closeBookSearchModal() { document.getElementById('bookSearchModal').classList.add('hidden'); }
+function closeBookSearchModal() {
+  document.getElementById('bookSearchModal').classList.add('hidden');
+  const searchSec = document.getElementById('bookSearchSection');
+  const editSec = document.getElementById('bookEditSection');
+  if (searchSec) searchSec.classList.remove('hidden');
+  if (editSec) editSec.classList.add('hidden');
+}
 
 function handleBookSearchInput(query) {
   clearTimeout(searchDebounceTimeout);
@@ -219,22 +297,182 @@ async function executeBookSearch(query) {
 
 window.selectBookFromSearchIndex = function(index) {
   const book = window.currentSearchResults[index];
-  if (book) selectBookFromSearch(book);
+  if (book) openBookEditPreview(book);
 }
 
-function selectBookFromSearch(book) {
+// ==========================================
+// PREVIEW / EDIÇÃO DE LIVRO ANTES DE CONFIRMAR
+// ==========================================
+
+function openBookEditPreview(book, overrideMemberId, overrideBookKey) {
+  // Se chamado com override (edição direta), guarda contexto
+  if (overrideMemberId && overrideBookKey) {
+    activeSearchContext = { memberId: overrideMemberId, bookKey: overrideBookKey };
+  }
+
+  const searchSection = document.getElementById('bookSearchSection');
+  const editSection = document.getElementById('bookEditSection');
+  if (!editSection) return;
+
+  // Esconde busca, mostra edição
+  if (searchSection) searchSection.classList.add('hidden');
+  editSection.classList.remove('hidden');
+
+  // Preenche campos
+  document.getElementById('editBookTitle').value = book.title || '';
+  document.getElementById('editBookAuthor').value = book.author || '';
+  document.getElementById('editBookCoverUrl').value = book.cover || '';
+  
+  // Preview da capa
+  const preview = document.getElementById('editBookCoverPreview');
+  if (preview) {
+    preview.src = book.cover || DEFAULT_BOOK_COVER;
+    preview.onerror = function() { this.onerror = null; this.src = DEFAULT_BOOK_COVER; };
+  }
+
+  // Se o modal não está aberto, abre
+  document.getElementById('bookSearchModal').classList.remove('hidden');
+
+  // Atualiza título do modal
+  document.getElementById('modalMemberTitle').innerText = 'Confirmar / Editar Livro';
+  document.getElementById('modalOptionBadge').innerText = activeSearchContext.bookKey === 'book1' ? 'Opção Principal' : 'Opção Reserva';
+}
+
+function updateCoverPreview() {
+  const url = document.getElementById('editBookCoverUrl').value.trim();
+  const preview = document.getElementById('editBookCoverPreview');
+  if (preview && url) {
+    preview.src = url;
+    preview.onerror = function() { this.onerror = null; this.src = DEFAULT_BOOK_COVER; };
+  }
+}
+
+function backToBookSearch() {
+  document.getElementById('bookSearchSection').classList.remove('hidden');
+  document.getElementById('bookEditSection').classList.add('hidden');
+}
+
+function confirmBookEdit() {
+  const title = document.getElementById('editBookTitle').value.trim();
+  const author = document.getElementById('editBookAuthor').value.trim();
+  const coverUrl = document.getElementById('editBookCoverUrl').value.trim();
+
+  if (!title) return showToast('Informe ao menos o título do livro.', 'warning');
+
+  const book = {
+    title,
+    author: author || 'Autor não informado',
+    cover: coverUrl || DEFAULT_BOOK_COVER,
+    description: ''
+  };
+
   const { memberId, bookKey } = activeSearchContext;
   const mem = window.clubState.members.find(m => m.id === memberId);
   if (mem) {
-    mem[bookKey] = { title: book.title, author: book.author, cover: book.cover, description: book.description || '' };
+    mem[bookKey] = book;
     if (mem.book1 && mem.book2 && memberId === window.localCurrentUser) window.isEditingBooks = false;
     invalidateRenderCache();
     playSound('advance');
     closeBookSearchModal();
-    // FIX: Update granular — só salva os dados deste membro
-    persistState(`state.members`);
-    showToast(`Livro adicionado para ${mem.name}!`, 'success');
+    persistState('state.members');
+    showToast(`"${book.title}" salvo com sucesso!`, 'success');
   }
+}
+
+// Setup drag-and-drop para capa
+function setupCoverDropZone() {
+  const dropZone = document.getElementById('coverDropZone');
+  if (!dropZone) return;
+
+  dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.classList.add('border-burgundy', 'bg-burgundy/5');
+    dropZone.classList.remove('border-stone-300');
+  });
+
+  dropZone.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('border-burgundy', 'bg-burgundy/5');
+    dropZone.classList.add('border-stone-300');
+  });
+
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('border-burgundy', 'bg-burgundy/5');
+    dropZone.classList.add('border-stone-300');
+
+    // Tenta extrair URL de imagem do HTML arrastado
+    const htmlData = e.dataTransfer.getData('text/html');
+    const textData = e.dataTransfer.getData('text/plain');
+    let imageUrl = '';
+
+    if (htmlData) {
+      const match = htmlData.match(/src=["']([^"']+)["']/i);
+      if (match && match[1]) imageUrl = match[1];
+    }
+
+    if (!imageUrl && textData && (textData.match(/^https?:\/\/.+\.(jpg|jpeg|png|gif|webp)/i) || textData.match(/^https?:\/\//))) {
+      imageUrl = textData;
+    }
+
+    if (imageUrl) {
+      document.getElementById('editBookCoverUrl').value = imageUrl;
+      updateCoverPreview();
+      showToast('Imagem capturada! Verifique o preview.', 'success');
+    } else {
+      showToast('Não foi possível extrair a URL da imagem arrastada.', 'warning');
+    }
+  });
+}
+
+// Busca de capas no Open Library
+async function searchCovers() {
+  const query = document.getElementById('editBookTitle').value.trim() || document.getElementById('editBookAuthor').value.trim();
+  if (!query) return showToast('Preencha o título ou autor para buscar capas.', 'warning');
+
+  const container = document.getElementById('coverSearchResults');
+  if (!container) return;
+
+  container.innerHTML = '<div class="text-xs text-stone-400 animate-pulse py-2 text-center">Buscando capas...</div>';
+
+  try {
+    const response = await fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=6`);
+    if (!response.ok) throw new Error('Falha na busca');
+    const data = await response.json();
+    const covers = (data.docs || [])
+      .filter(d => d.cover_i)
+      .slice(0, 6)
+      .map(d => ({
+        url: `https://covers.openlibrary.org/b/id/${d.cover_i}-M.jpg`,
+        title: d.title
+      }));
+
+    if (covers.length === 0) {
+      container.innerHTML = '<div class="text-xs text-stone-400 py-2 text-center">Nenhuma capa encontrada.</div>';
+      return;
+    }
+
+    container.innerHTML = covers.map(c => `
+      <img src="${c.url}" title="${escapeHtml(c.title)}" onclick="document.getElementById('editBookCoverUrl').value='${c.url}'; updateCoverPreview(); showToast('Capa selecionada!', 'success');" class="w-14 h-20 object-cover rounded-lg border border-stone-200 hover:border-burgundy cursor-pointer transition shadow-xs hover:shadow-md" loading="lazy">
+    `).join('');
+  } catch(e) {
+    container.innerHTML = '<div class="text-xs text-rose-500 py-2 text-center">Erro ao buscar capas.</div>';
+  }
+}
+
+// Inicializa drag-and-drop quando DOM carrega
+window.addEventListener('DOMContentLoaded', () => {
+  // Observer para quando o modal aparecer
+  const observer = new MutationObserver(() => {
+    setupCoverDropZone();
+  });
+  const modal = document.getElementById('bookSearchModal');
+  if (modal) observer.observe(modal, { attributes: true, attributeFilter: ['class'] });
+  setupCoverDropZone();
+});
+
+function selectBookFromSearch(book) {
+  openBookEditPreview(book);
 }
 
 function applyManualBook() {
@@ -242,7 +480,7 @@ function applyManualBook() {
   const author = document.getElementById('manualAuthor').value.trim();
   const cover = document.getElementById('manualCover').value.trim();
   if (!title) return showToast('Por favor, informe pelo menos o título do livro.', 'warning');
-  selectBookFromSearch({ title, author: author || 'Autor não informado', cover: cover || DEFAULT_BOOK_COVER });
+  openBookEditPreview({ title, author: author || 'Autor não informado', cover: cover || DEFAULT_BOOK_COVER, description: '' });
   document.getElementById('manualTitle').value = '';
   document.getElementById('manualAuthor').value = '';
   document.getElementById('manualCover').value = '';

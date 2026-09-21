@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="version" content="v5.3-stable">
+  <meta name="version" content="v6.0-stable">
   <title>Clube do Livro - Seleção e Sorteio</title>
   
   <!-- Ícone da Aba -->
@@ -59,7 +59,7 @@
       <div>
         <h2 class="text-2xl font-serif font-bold text-stone-900 flex items-center justify-center gap-2">
           <span>Clube do Livro</span>
-          <span class="text-[11px] font-mono font-semibold bg-burgundy/10 text-burgundy border border-burgundy/20 px-2 py-0.5 rounded-full">v5.3-stable</span>
+          <span class="text-[11px] font-mono font-semibold bg-burgundy/10 text-burgundy border border-burgundy/20 px-2 py-0.5 rounded-full">v6.0-stable</span>
         </h2>
         <p class="text-sm text-stone-500 mt-2">Crie uma nova sala para o seu grupo ou acesse uma existente.</p>
       </div>
@@ -96,7 +96,7 @@
           <div>
             <div class="flex items-center gap-2">
               <h1 id="clubTitleHeader" class="font-serif font-bold text-lg text-[#2A1F1B] leading-tight">Clube do Livro</h1>
-              <span class="text-[10px] font-mono font-semibold bg-burgundy/10 text-burgundy border border-burgundy/20 px-1.5 py-0.5 rounded-md">v5.3-stable</span>
+              <span class="text-[10px] font-mono font-semibold bg-burgundy/10 text-burgundy border border-burgundy/20 px-1.5 py-0.5 rounded-md">v6.0-stable</span>
               <button onclick="openEditClubNameModal()" title="Editar nome do clube" class="text-stone-400 hover:text-burgundy transition">
                 <i class="ph ph-pencil-simple text-sm"></i>
               </button>
@@ -292,26 +292,81 @@
         </div>
         <button onclick="closeBookSearchModal()" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-500 flex items-center justify-center"><i class="ph ph-x text-lg"></i></button>
       </div>
-      <div class="space-y-2">
-        <label class="text-xs font-bold uppercase text-stone-500">Buscar no Google Books</label>
-        <div class="relative">
-          <i class="ph ph-magnifying-glass absolute left-3.5 top-3 text-stone-400 text-lg"></i>
-          <input id="bookSearchInput" type="text" placeholder="Digite o título ou autor do livro..." oninput="handleBookSearchInput(this.value)" class="w-full pl-10 pr-10 py-2.5 rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-burgundy/40 focus:border-burgundy text-sm">
+
+      <!-- SEÇÃO DE BUSCA -->
+      <div id="bookSearchSection">
+        <div class="space-y-2">
+          <label class="text-xs font-bold uppercase text-stone-500">Buscar no Google Books</label>
+          <div class="relative">
+            <i class="ph ph-magnifying-glass absolute left-3.5 top-3 text-stone-400 text-lg"></i>
+            <input id="bookSearchInput" type="text" placeholder="Digite o título ou autor do livro..." oninput="handleBookSearchInput(this.value)" class="w-full pl-10 pr-10 py-2.5 rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-burgundy/40 focus:border-burgundy text-sm">
+          </div>
+        </div>
+        <div id="searchResultsList" class="max-h-64 overflow-y-auto custom-scrollbar space-y-2 pr-1 mt-3">
+          <div class="text-center py-8 text-stone-400 text-xs">Busque sua obra pelo título ou autor...</div>
+        </div>
+        <div class="pt-2 border-t border-stone-100 mt-3">
+          <details class="text-xs text-stone-500">
+            <summary class="cursor-pointer font-medium hover:text-burgundy">Não encontrou? Inserir manualmente</summary>
+            <div class="space-y-2.5 mt-3 pt-2">
+              <input id="manualTitle" type="text" onkeydown="if(event.key === 'Enter') applyManualBook()" placeholder="Título do Livro *" class="w-full px-3 py-2 rounded-lg border text-xs">
+              <input id="manualAuthor" type="text" onkeydown="if(event.key === 'Enter') applyManualBook()" placeholder="Autor(a)" class="w-full px-3 py-2 rounded-lg border text-xs">
+              <input id="manualCover" type="url" onkeydown="if(event.key === 'Enter') applyManualBook()" placeholder="URL da Capa (opcional)" class="w-full px-3 py-2 rounded-lg border text-xs">
+              <button onclick="applyManualBook()" class="w-full py-2 bg-stone-800 hover:bg-black text-white rounded-lg font-bold text-xs">Confirmar Livro Manual</button>
+            </div>
+          </details>
         </div>
       </div>
-      <div id="searchResultsList" class="max-h-64 overflow-y-auto custom-scrollbar space-y-2 pr-1">
-        <div class="text-center py-8 text-stone-400 text-xs">Busque sua obra pelo título ou autor...</div>
-      </div>
-      <div class="pt-2 border-t border-stone-100">
-        <details class="text-xs text-stone-500">
-          <summary class="cursor-pointer font-medium hover:text-burgundy">Não encontrou? Inserir manualmente</summary>
-          <div class="space-y-2.5 mt-3 pt-2">
-            <input id="manualTitle" type="text" onkeydown="if(event.key === 'Enter') applyManualBook()" placeholder="Título do Livro *" class="w-full px-3 py-2 rounded-lg border text-xs">
-            <input id="manualAuthor" type="text" onkeydown="if(event.key === 'Enter') applyManualBook()" placeholder="Autor(a)" class="w-full px-3 py-2 rounded-lg border text-xs">
-            <input id="manualCover" type="url" onkeydown="if(event.key === 'Enter') applyManualBook()" placeholder="URL da Capa (opcional)" class="w-full px-3 py-2 rounded-lg border text-xs">
-            <button onclick="applyManualBook()" class="w-full py-2 bg-stone-800 hover:bg-black text-white rounded-lg font-bold text-xs">Confirmar Livro Manual</button>
+
+      <!-- SEÇÃO DE EDIÇÃO / PREVIEW -->
+      <div id="bookEditSection" class="hidden space-y-4">
+        <button onclick="backToBookSearch()" class="flex items-center gap-1.5 text-xs font-bold text-stone-500 hover:text-burgundy transition">
+          <i class="ph ph-arrow-left text-sm"></i> Voltar à Busca
+        </button>
+        
+        <div class="flex flex-col sm:flex-row gap-4">
+          <!-- Preview da Capa -->
+          <div class="flex flex-col items-center gap-2 shrink-0">
+            <img id="editBookCoverPreview" src="" class="w-28 h-40 object-cover rounded-xl shadow-md border border-stone-200 bg-stone-100" onerror="this.onerror=null; this.src=DEFAULT_BOOK_COVER;">
+            <span class="text-[10px] text-stone-400">Preview da capa</span>
           </div>
-        </details>
+          
+          <!-- Campos Editáveis -->
+          <div class="flex-1 space-y-3">
+            <div>
+              <label class="text-[10px] font-bold uppercase text-stone-500 mb-1 block">Título</label>
+              <input id="editBookTitle" type="text" class="w-full px-3 py-2 rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-burgundy/40 text-sm font-serif">
+            </div>
+            <div>
+              <label class="text-[10px] font-bold uppercase text-stone-500 mb-1 block">Autor(a)</label>
+              <input id="editBookAuthor" type="text" class="w-full px-3 py-2 rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-burgundy/40 text-sm">
+            </div>
+          </div>
+        </div>
+
+        <!-- Seção de Capa -->
+        <div class="space-y-2">
+          <label class="text-[10px] font-bold uppercase text-stone-500">Alterar Capa</label>
+          <div class="flex gap-2">
+            <input id="editBookCoverUrl" type="url" placeholder="Cole a URL de uma imagem..." oninput="updateCoverPreview()" class="flex-1 px-3 py-2 rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-burgundy/40 text-xs">
+            <button onclick="searchCovers()" title="Buscar capas" class="px-3 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold transition flex items-center gap-1">
+              <i class="ph ph-magnifying-glass text-sm"></i> Capas
+            </button>
+          </div>
+          
+          <!-- Resultados de busca de capas -->
+          <div id="coverSearchResults" class="flex flex-wrap gap-2"></div>
+
+          <!-- Drop Zone -->
+          <div id="coverDropZone" class="p-4 rounded-xl border-2 border-dashed border-stone-300 text-center cursor-pointer hover:border-burgundy/40 hover:bg-burgundy/5 transition">
+            <i class="ph ph-image text-2xl text-stone-300 mb-1"></i>
+            <p class="text-[10px] text-stone-400">Arraste uma imagem da internet aqui para usar como capa</p>
+          </div>
+        </div>
+
+        <button onclick="confirmBookEdit()" class="w-full py-3 rounded-2xl bg-burgundy hover:bg-burgundyLight text-white font-bold text-sm shadow-md shadow-burgundy/20 transition flex items-center justify-center gap-2">
+          <i class="ph ph-check-circle text-base"></i> Confirmar Indicação
+        </button>
       </div>
     </div>
   </div>
@@ -339,6 +394,15 @@
         </button>
         <button onclick="handleSoftResetOnly()" class="w-full py-2.5 rounded-xl border border-stone-200 text-stone-600 hover:bg-stone-50 text-xs font-semibold transition">Apenas limpar indicações atuais (sem arquivar)</button>
         <button onclick="closeConfirmModal()" class="w-full py-2 rounded-xl text-xs text-stone-400 hover:text-stone-600">Cancelar</button>
+      </div>
+      <div id="cycleToggleInConfirm" class="pt-2 border-t border-stone-100">
+        <div class="flex items-center justify-between p-2 rounded-xl bg-stone-50">
+          <div class="flex items-center gap-2 text-xs">
+            <i class="ph ph-circle-notch text-amber-600"></i>
+            <span class="font-semibold text-stone-700">Ciclo Fechado</span>
+          </div>
+          <button onclick="window.clubState.closedCycle = window.clubState.closedCycle || {enabled:true,winners:[]}; window.clubState.closedCycle.enabled = !window.clubState.closedCycle.enabled; persistState('state.closedCycle'); this.innerHTML = window.clubState.closedCycle.enabled ? '✓ Ativo' : '○ Inativo'; this.className = window.clubState.closedCycle.enabled ? 'px-3 py-1 rounded-lg text-[10px] font-bold bg-emerald-100 text-emerald-700 transition' : 'px-3 py-1 rounded-lg text-[10px] font-bold bg-stone-200 text-stone-500 transition'" class="px-3 py-1 rounded-lg text-[10px] font-bold bg-emerald-100 text-emerald-700 transition">✓ Ativo</button>
+        </div>
       </div>
     </div>
   </div>
@@ -373,7 +437,8 @@
         </div>
         <button onclick="closeHistoryModal()" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-500 flex items-center justify-center"><i class="ph ph-x text-sm"></i></button>
       </div>
-      <div id="historyListContainer" class="flex-1 overflow-y-auto custom-scrollbar my-4 space-y-3 pr-1"></div>
+      <div id="historyTabsContainer" class="py-2"></div>
+      <div id="historyListContainer" class="flex-1 overflow-y-auto custom-scrollbar my-2 space-y-3 pr-1"></div>
       <div class="pt-3 border-t border-stone-100 flex justify-between items-center text-xs text-stone-400">
         <span id="historyTotalCountText">Nenhum livro arquivado ainda.</span>
         <button onclick="closeHistoryModal()" class="px-4 py-2 bg-stone-100 hover:bg-stone-200 rounded-xl text-stone-700 font-semibold transition">Fechar</button>
@@ -538,7 +603,7 @@
 
   <div id="toastContainer" class="fixed bottom-5 left-5 z-[70] flex flex-col gap-2 pointer-events-none"></div>
   
-  <div id="versionBadge" class="fixed bottom-3 right-3 text-[11px] text-stone-600 bg-stone-100/90 border border-stone-300 px-2.5 py-0.5 rounded-full font-mono select-none shadow-xs z-30 opacity-80 hover:opacity-100 transition cursor-pointer">v5.3-stable</div>
+  <div id="versionBadge" class="fixed bottom-3 right-3 text-[11px] text-stone-600 bg-stone-100/90 border border-stone-300 px-2.5 py-0.5 rounded-full font-mono select-none shadow-xs z-30 opacity-80 hover:opacity-100 transition cursor-pointer">v6.0-stable</div>
 
   <!-- SCRIPTS DA APLICAÇÃO (ordem de dependência) -->
   <script src="js/config.js"></script>
@@ -552,6 +617,7 @@
   <script src="js/members.js"></script>
   <script src="js/modals.js"></script>
   <script src="js/sharing.js"></script>
+  <script src="js/export-image.js"></script>
   <script src="js/admin.js"></script>
 
 </body>

@@ -11,7 +11,9 @@ window.clubState = {
   updatedAt: 0,
   presence: {},    
   drawEvent: null, 
-  drawLogs: []     
+  drawLogs: [],
+  fridge: [],                                    // Geladeira: livros finalistas que perderam o sorteio
+  closedCycle: { enabled: true, winners: [] }    // Ciclo Fechado: campeões ficam de fora da roleta até todos vencerem
 };
 
 // Stage é LOCAL — cada usuário controla sua própria navegação
@@ -26,7 +28,7 @@ var isDrawing = false;
 var isFirstSync = true;
 var isInitialized = false; // FIX: Bloqueia persistState até o primeiro sync completar
 
-console.log('%c[Clube do Livro] v5.3-stable carregado', 'color: #832837; font-weight: bold; font-size: 14px;');
+console.log('%c[Clube do Livro] v6.0-stable carregado', 'color: #832837; font-weight: bold; font-size: 14px;');
 
 // ==========================================
 // ASSINATURAS DE CACHE (impede re-render desnecessário)
