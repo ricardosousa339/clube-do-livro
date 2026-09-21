@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="version" content="v6.0-stable">
+  <meta name="version" content="v6.1-stable">
   <title>Clube do Livro - Seleção e Sorteio</title>
   
   <!-- Ícone da Aba -->
@@ -59,7 +59,7 @@
       <div>
         <h2 class="text-2xl font-serif font-bold text-stone-900 flex items-center justify-center gap-2">
           <span>Clube do Livro</span>
-          <span class="text-[11px] font-mono font-semibold bg-burgundy/10 text-burgundy border border-burgundy/20 px-2 py-0.5 rounded-full">v6.0-stable</span>
+          <span class="text-[11px] font-mono font-semibold bg-burgundy/10 text-burgundy border border-burgundy/20 px-2 py-0.5 rounded-full">v6.1-stable</span>
         </h2>
         <p class="text-sm text-stone-500 mt-2">Crie uma nova sala para o seu grupo ou acesse uma existente.</p>
       </div>
@@ -96,7 +96,7 @@
           <div>
             <div class="flex items-center gap-2">
               <h1 id="clubTitleHeader" class="font-serif font-bold text-lg text-[#2A1F1B] leading-tight">Clube do Livro</h1>
-              <span class="text-[10px] font-mono font-semibold bg-burgundy/10 text-burgundy border border-burgundy/20 px-1.5 py-0.5 rounded-md">v6.0-stable</span>
+              <span class="text-[10px] font-mono font-semibold bg-burgundy/10 text-burgundy border border-burgundy/20 px-1.5 py-0.5 rounded-md">v6.1-stable</span>
               <button onclick="openEditClubNameModal()" title="Editar nome do clube" class="text-stone-400 hover:text-burgundy transition">
                 <i class="ph ph-pencil-simple text-sm"></i>
               </button>
@@ -149,12 +149,21 @@
 
     <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-6 sm:px-6">
       <div class="mb-8">
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
-          <button onclick="changeStage('nominations')" id="stepBtn-nominations" class="flex items-center gap-3 p-3 rounded-2xl border transition-all text-left bg-white border-burgundy shadow-sm ring-1 ring-burgundy/20">
-            <div id="stepIcon-nominations" class="w-8 h-8 rounded-xl bg-burgundy text-white flex items-center justify-center font-bold text-sm shrink-0">1</div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3">
+          <button onclick="changeStage('home')" id="stepBtn-home" class="flex items-center gap-3 p-3 rounded-2xl border transition-all text-left bg-white border-burgundy shadow-sm ring-1 ring-burgundy/20">
+            <div id="stepIcon-home" class="w-8 h-8 rounded-xl bg-burgundy text-white flex items-center justify-center font-bold text-sm shrink-0">
+              <i class="ph ph-book-open-text text-base"></i>
+            </div>
             <div class="min-w-0">
-              <div class="text-xs font-bold text-stone-500 uppercase tracking-wider">Etapa 1</div>
-              <div class="text-sm font-semibold text-stone-900 truncate">Indicações</div>
+              <div class="text-xs font-bold text-stone-500 uppercase tracking-wider">Início</div>
+              <div class="text-sm font-semibold text-stone-900 truncate">Livro Atual</div>
+            </div>
+          </button>
+          <button onclick="changeStage('nominations')" id="stepBtn-nominations" class="flex items-center gap-3 p-3 rounded-2xl border transition-all text-left bg-white/60 border-stone-200 text-stone-400 hover:border-stone-300">
+            <div id="stepIcon-nominations" class="w-8 h-8 rounded-xl bg-stone-100 text-stone-500 flex items-center justify-center font-bold text-sm shrink-0">1</div>
+            <div class="min-w-0">
+              <div class="text-xs font-bold text-stone-400 uppercase tracking-wider">Etapa 1</div>
+              <div class="text-sm font-semibold text-stone-700 truncate">Indicações</div>
             </div>
           </button>
           <button onclick="changeStage('voting')" id="stepBtn-voting" class="flex items-center gap-3 p-3 rounded-2xl border transition-all text-left bg-white/60 border-stone-200 text-stone-400 hover:border-stone-300">
@@ -171,7 +180,7 @@
               <div class="text-sm font-semibold text-stone-700 truncate">Apuração</div>
             </div>
           </button>
-          <button onclick="changeStage('draw')" id="stepBtn-draw" class="flex items-center gap-3 p-3 rounded-2xl border transition-all text-left bg-white/60 border-stone-200 text-stone-400 hover:border-stone-300">
+          <button onclick="changeStage('draw')" id="stepBtn-draw" class="flex items-center gap-3 p-3 rounded-2xl border transition-all text-left bg-white/60 border-stone-200 text-stone-400 hover:border-stone-300 col-span-2 sm:col-span-1">
             <div id="stepIcon-draw" class="w-8 h-8 rounded-xl bg-stone-100 text-stone-500 flex items-center justify-center font-bold text-sm shrink-0">4</div>
             <div class="min-w-0">
               <div class="text-xs font-bold text-stone-400 uppercase tracking-wider">Etapa 4</div>
@@ -181,7 +190,14 @@
         </div>
       </div>
 
-      <section id="section-nominations" class="space-y-6">
+      <!-- SEÇÃO HOME — LIVRO ATUAL -->
+      <section id="section-home" class="space-y-6">
+        <div id="homeCurrentBookContainer">
+          <!-- Preenchido dinamicamente por renderHomeScreen() -->
+        </div>
+      </section>
+
+      <section id="section-nominations" class="space-y-6 hidden">
         <div class="flex flex-wrap items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-[#EBE4D8] shadow-xs">
           <div>
             <span class="inline-block px-3 py-1 bg-burgundy/10 text-burgundy font-bold text-xs rounded-full uppercase tracking-wider mb-2">Primeira Fase</span>
@@ -347,15 +363,13 @@
         <!-- Seção de Capa -->
         <div class="space-y-2">
           <label class="text-[10px] font-bold uppercase text-stone-500">Alterar Capa</label>
-          <div class="flex gap-2">
-            <input id="editBookCoverUrl" type="url" placeholder="Cole a URL de uma imagem..." oninput="updateCoverPreview()" class="flex-1 px-3 py-2 rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-burgundy/40 text-xs">
-            <button onclick="searchCovers()" title="Buscar capas" class="px-3 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold transition flex items-center gap-1">
-              <i class="ph ph-magnifying-glass text-sm"></i> Capas
-            </button>
-          </div>
+          <input id="editBookCoverUrl" type="url" placeholder="Cole a URL da imagem da capa..." oninput="updateCoverPreview()" class="w-full px-3 py-2 rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-burgundy/40 text-xs">
           
-          <!-- Resultados de busca de capas -->
-          <div id="coverSearchResults" class="flex flex-wrap gap-2"></div>
+          <button type="button" onclick="searchGoogleImagesForCover()" class="w-full py-2 px-3 rounded-xl border border-stone-300 hover:border-stone-400 bg-stone-50 hover:bg-stone-100 text-stone-700 text-xs font-bold transition flex items-center justify-center gap-2">
+            <i class="ph ph-magnifying-glass text-sm text-burgundy"></i>
+            <span>Buscar Capas no Google Imagens</span>
+            <i class="ph ph-arrow-square-out text-xs text-stone-400"></i>
+          </button>
 
           <!-- Drop Zone -->
           <div id="coverDropZone" class="p-4 rounded-xl border-2 border-dashed border-stone-300 text-center cursor-pointer hover:border-burgundy/40 hover:bg-burgundy/5 transition">
@@ -442,6 +456,71 @@
       <div class="pt-3 border-t border-stone-100 flex justify-between items-center text-xs text-stone-400">
         <span id="historyTotalCountText">Nenhum livro arquivado ainda.</span>
         <button onclick="closeHistoryModal()" class="px-4 py-2 bg-stone-100 hover:bg-stone-200 rounded-xl text-stone-700 font-semibold transition">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL EDITAR LIVRO DO HISTÓRICO (ADMIN) -->
+  <div id="editHistoryModal" class="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-white w-full max-w-lg rounded-3xl p-6 shadow-2xl border border-stone-200 space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar">
+      <div class="flex items-center justify-between pb-3 border-b border-stone-100">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center text-xl"><i class="ph ph-pencil-simple"></i></div>
+          <div>
+            <h3 class="text-base font-serif font-bold text-stone-900 leading-tight">Editar Leitura do Histórico</h3>
+            <p class="text-[11px] text-stone-500">Ajuste os dados para o Mosaico Anual e Histórico</p>
+          </div>
+        </div>
+        <button onclick="closeEditHistoryModal()" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-500 flex items-center justify-center"><i class="ph ph-x text-sm"></i></button>
+      </div>
+
+      <input type="hidden" id="editHistoryId">
+
+      <div class="flex flex-col sm:flex-row gap-4">
+        <!-- Preview da Capa -->
+        <div class="flex flex-col items-center gap-2 shrink-0">
+          <img id="editHistoryCoverPreview" src="" class="w-24 h-36 object-cover rounded-xl shadow-md border border-stone-200 bg-stone-100" onerror="this.onerror=null; this.src=DEFAULT_BOOK_COVER;">
+          <span class="text-[10px] text-stone-400">Preview</span>
+        </div>
+
+        <!-- Campos -->
+        <div class="flex-1 space-y-3">
+          <div>
+            <label class="text-[10px] font-bold uppercase text-stone-500 mb-1 block">Título da Obra</label>
+            <input id="editHistoryTitle" type="text" class="w-full px-3 py-2 rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-burgundy/40 text-sm font-serif">
+          </div>
+          <div>
+            <label class="text-[10px] font-bold uppercase text-stone-500 mb-1 block">Autor(a)</label>
+            <input id="editHistoryAuthor" type="text" class="w-full px-3 py-2 rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-burgundy/40 text-sm">
+          </div>
+          <div>
+            <label class="text-[10px] font-bold uppercase text-stone-500 mb-1 block">Mês / Ano da Leitura</label>
+            <input id="editHistoryMonthLabel" type="text" placeholder="Ex: setembro de 2026" class="w-full px-3 py-2 rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-burgundy/40 text-xs">
+          </div>
+        </div>
+      </div>
+
+      <!-- URL da Capa e Botões -->
+      <div class="space-y-2">
+        <label class="text-[10px] font-bold uppercase text-stone-500">URL da Imagem da Capa</label>
+        <input id="editHistoryCoverUrl" type="url" placeholder="https://..." oninput="updateHistoryCoverPreview()" class="w-full px-3 py-2 rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-burgundy/40 text-xs">
+        
+        <button type="button" onclick="searchGoogleForHistoryCover()" class="w-full py-2 px-3 rounded-xl border border-stone-300 hover:border-stone-400 bg-stone-50 hover:bg-stone-100 text-stone-700 text-xs font-bold transition flex items-center justify-center gap-2">
+          <i class="ph ph-magnifying-glass text-sm text-burgundy"></i>
+          <span>Buscar Capas no Google Imagens</span>
+          <i class="ph ph-arrow-square-out text-xs text-stone-400"></i>
+        </button>
+
+        <!-- Dropzone de Capa para Histórico -->
+        <div id="historyCoverDropZone" class="p-3 rounded-xl border-2 border-dashed border-stone-300 text-center cursor-pointer hover:border-burgundy/40 hover:bg-burgundy/5 transition">
+          <i class="ph ph-image text-xl text-stone-300 mb-0.5"></i>
+          <p class="text-[10px] text-stone-400">Arraste uma imagem da internet aqui para atualizar a capa</p>
+        </div>
+      </div>
+
+      <div class="flex gap-2 pt-2 border-t border-stone-100">
+        <button onclick="closeEditHistoryModal()" class="flex-1 py-2.5 rounded-xl border border-stone-200 text-xs font-bold text-stone-600 hover:bg-stone-50 transition">Cancelar</button>
+        <button onclick="saveHistoryItemEdit()" class="flex-1 py-2.5 rounded-xl bg-burgundy hover:bg-burgundyLight text-white text-xs font-bold transition shadow-sm">Salvar Alterações</button>
       </div>
     </div>
   </div>
@@ -603,7 +682,7 @@
 
   <div id="toastContainer" class="fixed bottom-5 left-5 z-[70] flex flex-col gap-2 pointer-events-none"></div>
   
-  <div id="versionBadge" class="fixed bottom-3 right-3 text-[11px] text-stone-600 bg-stone-100/90 border border-stone-300 px-2.5 py-0.5 rounded-full font-mono select-none shadow-xs z-30 opacity-80 hover:opacity-100 transition cursor-pointer">v6.0-stable</div>
+  <div id="versionBadge" class="fixed bottom-3 right-3 text-[11px] text-stone-600 bg-stone-100/90 border border-stone-300 px-2.5 py-0.5 rounded-full font-mono select-none shadow-xs z-30 opacity-80 hover:opacity-100 transition cursor-pointer">v6.1-stable</div>
 
   <!-- SCRIPTS DA APLICAÇÃO (ordem de dependência) -->
   <script src="js/config.js"></script>

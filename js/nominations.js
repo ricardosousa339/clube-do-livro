@@ -425,39 +425,14 @@ function setupCoverDropZone() {
   });
 }
 
-// Busca de capas no Open Library
-async function searchCovers() {
-  const query = document.getElementById('editBookTitle').value.trim() || document.getElementById('editBookAuthor').value.trim();
-  if (!query) return showToast('Preencha o título ou autor para buscar capas.', 'warning');
+// Busca de capas no Google Imagens (abre em nova guia)
+function searchGoogleImagesForCover() {
+  const title = (document.getElementById('editBookTitle')?.value || '').trim();
+  const author = (document.getElementById('editBookAuthor')?.value || '').trim();
+  if (!title && !author) return showToast('Preencha o título ou autor para buscar capas.', 'warning');
 
-  const container = document.getElementById('coverSearchResults');
-  if (!container) return;
-
-  container.innerHTML = '<div class="text-xs text-stone-400 animate-pulse py-2 text-center">Buscando capas...</div>';
-
-  try {
-    const response = await fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=6`);
-    if (!response.ok) throw new Error('Falha na busca');
-    const data = await response.json();
-    const covers = (data.docs || [])
-      .filter(d => d.cover_i)
-      .slice(0, 6)
-      .map(d => ({
-        url: `https://covers.openlibrary.org/b/id/${d.cover_i}-M.jpg`,
-        title: d.title
-      }));
-
-    if (covers.length === 0) {
-      container.innerHTML = '<div class="text-xs text-stone-400 py-2 text-center">Nenhuma capa encontrada.</div>';
-      return;
-    }
-
-    container.innerHTML = covers.map(c => `
-      <img src="${c.url}" title="${escapeHtml(c.title)}" onclick="document.getElementById('editBookCoverUrl').value='${c.url}'; updateCoverPreview(); showToast('Capa selecionada!', 'success');" class="w-14 h-20 object-cover rounded-lg border border-stone-200 hover:border-burgundy cursor-pointer transition shadow-xs hover:shadow-md" loading="lazy">
-    `).join('');
-  } catch(e) {
-    container.innerHTML = '<div class="text-xs text-rose-500 py-2 text-center">Erro ao buscar capas.</div>';
-  }
+  const query = `${title} ${author} capa livro`.trim();
+  window.open(`https://www.google.com/search?tbm=isch&q=${encodeURIComponent(query)}`, '_blank');
 }
 
 // Inicializa drag-and-drop quando DOM carrega

@@ -17,8 +17,8 @@ window.clubState = {
 };
 
 // Stage é LOCAL — cada usuário controla sua própria navegação
-// Isso evita o bug de "aba trocando sozinha" quando vários estão online
-window.localStage = localStorage.getItem('clubeDoLivro_localStage') || 'nominations';
+// A Home ('home') agora é a tela inicial com o Livro Atual
+window.localStage = localStorage.getItem('clubeDoLivro_localStage') || 'home';
 
 window.localCurrentUser = null;
 window.isEditingBooks = false; 
@@ -28,7 +28,7 @@ var isDrawing = false;
 var isFirstSync = true;
 var isInitialized = false; // FIX: Bloqueia persistState até o primeiro sync completar
 
-console.log('%c[Clube do Livro] v6.0-stable carregado', 'color: #832837; font-weight: bold; font-size: 14px;');
+console.log('%c[Clube do Livro] v6.1-stable carregado', 'color: #832837; font-weight: bold; font-size: 14px;');
 
 // ==========================================
 // ASSINATURAS DE CACHE (impede re-render desnecessário)

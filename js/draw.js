@@ -375,13 +375,16 @@ function renderWinnerCard(winnerData) {
           ${book.description ? `<p class="text-xs text-stone-500 line-clamp-3 pt-1 italic font-serif">"${escapeHtml(book.description)}"</p>` : ''}
           
           <div class="pt-4 flex flex-wrap gap-2 justify-center sm:justify-start">
-            <button onclick="copySummaryToClipboard()" class="px-5 py-2.5 rounded-xl bg-burgundy hover:bg-burgundyLight text-white font-bold text-xs shadow-md transition flex items-center gap-2">
-              <i class="ph ph-whatsapp-logo text-base"></i><span>Copiar Resumo para WhatsApp</span>
+            <button onclick="downloadCurrentMonthCard()" class="px-4 py-2.5 rounded-xl bg-stone-900 hover:bg-black text-white font-bold text-xs transition flex items-center gap-2 shadow-sm">
+              <i class="ph ph-download-simple text-base text-gold"></i><span>Baixar Card</span>
             </button>
-            <button onclick="generateCurrentMonthCard()" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#2D211C] to-[#3D2F28] hover:from-[#3D2F28] hover:to-[#4a3b32] text-white font-bold text-xs transition flex items-center gap-2 shadow-md">
-              <i class="ph ph-image text-base text-gold"></i><span>📸 Card para Stories</span>
+            <button onclick="shareMonthCardWhatsApp()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition flex items-center gap-2 shadow-sm shadow-emerald-700/20">
+              <i class="ph ph-whatsapp-logo text-base"></i><span>Enviar para o WhatsApp</span>
             </button>
-            <button onclick="openResetCycleModal()" class="px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs transition flex items-center gap-1.5 shadow-sm">
+            <button onclick="copySummaryToClipboard()" class="px-4 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs transition flex items-center gap-2">
+              <i class="ph ph-copy text-base"></i><span>Copiar Texto</span>
+            </button>
+            <button onclick="openResetCycleModal()" class="px-4 py-2.5 rounded-xl bg-burgundy hover:bg-burgundyLight text-white font-bold text-xs transition flex items-center gap-1.5 shadow-sm">
               <i class="ph ph-archive-box"></i><span>Arquivar & Iniciar Novo Mês</span>
             </button>
             <button onclick="initiateDraw()" class="px-4 py-2.5 rounded-xl bg-white hover:bg-stone-50 text-stone-700 border border-stone-300 font-semibold text-xs transition">

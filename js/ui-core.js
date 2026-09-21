@@ -159,7 +159,7 @@ window.renderUI = function() {
   }
 
   // FIX: Usar localStage em vez de state.stage — cada usuário controla sua navegação
-  ['nominations', 'voting', 'results', 'draw'].forEach(s => {
+  ['home', 'nominations', 'voting', 'results', 'draw'].forEach(s => {
     const section = document.getElementById(`section-${s}`);
     const btn = document.getElementById(`stepBtn-${s}`);
     const icon = document.getElementById(`stepIcon-${s}`);
@@ -176,8 +176,145 @@ window.renderUI = function() {
     }
   });
 
+  renderHomeScreen();
   renderNominationsGrid();
   renderVotingSection();
   renderResultsGrid();
   renderRouletteView();
 };
+
+// ==========================================
+// RENDER HOME — LIVRO ATUAL
+// ==========================================
+function renderHomeScreen() {
+  const container = document.getElementById('homeCurrentBookContainer');
+  if (!container) return;
+
+  const state = window.clubState;
+  if (!state) return;
+
+  // Busca o livro atual (vencedor da rodada ou o mais recente do histórico)
+  const currentWinner = state.winner;
+  const latestHistory = state.history && state.history.length > 0 ? state.history[0] : null;
+
+  let book = null;
+  let memberName = '';
+  let monthLabel = '';
+  let drawDate = '';
+
+  if (currentWinner && currentWinner.book) {
+    book = currentWinner.book;
+    memberName = currentWinner.member;
+    monthLabel = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(new Date());
+    drawDate = new Date().toLocaleDateString('pt-BR');
+  } else if (latestHistory && latestHistory.winner) {
+    book = latestHistory.winner;
+    memberName = latestHistory.winner.member;
+    monthLabel = latestHistory.monthLabel || '';
+    drawDate = latestHistory.archivedAt || '';
+  }
+
+  if (!book) {
+    // Estado Vazio: Nenhum livro sorteado ainda
+    container.innerHTML = `
+      <div class="bg-white rounded-3xl p-8 sm:p-12 border border-[#EBE4D8] shadow-xs text-center space-y-4 max-w-xl mx-auto">
+        <div class="w-16 h-16 rounded-3xl bg-burgundy/10 text-burgundy flex items-center justify-center text-4xl mx-auto">
+          <i class="ph ph-books"></i>
+        </div>
+        <div class="space-y-1">
+          <h3 class="text-2xl font-serif font-bold text-stone-900">Bem-vindos ao Clube!</h3>
+          <p class="text-xs sm:text-sm text-stone-500 max-w-md mx-auto">Ainda não há nenhum livro sorteado neste clube. Comece adicionando as indicações dos integrantes para a primeira rodada!</p>
+        </div>
+        <div class="pt-2">
+          <button onclick="changeStage('nominations')" class="px-6 py-3 rounded-2xl bg-burgundy hover:bg-burgundyLight text-white font-bold text-sm shadow-md shadow-burgundy/20 transition inline-flex items-center gap-2">
+            <i class="ph ph-plus-circle text-lg"></i> Iniciar Indicações da 1ª Leitura
+          </button>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  const coverUrl = book.cover || (typeof DEFAULT_BOOK_COVER !== 'undefined' ? DEFAULT_BOOK_COVER : '');
+
+  container.innerHTML = `
+    <div class="space-y-6">
+      <!-- HERO DO LIVRO ATUAL -->
+      <div class="bg-gradient-to-br from-[#FAF5EC] via-white to-[#F5EDE1] rounded-3xl p-6 sm:p-8 border border-gold/30 shadow-xl relative overflow-hidden">
+        <div class="absolute -right-12 -top-12 w-48 h-48 bg-gold/10 rounded-full blur-3xl pointer-events-none"></div>
+        
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-6 pb-4 border-b border-stone-200/60">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-burgundy/10 text-burgundy font-black text-xs uppercase tracking-wider">
+              <i class="ph ph-book-open text-sm"></i> Leitura Atual do Clube
+            </span>
+            ${monthLabel ? `<span class="text-xs text-stone-500 font-semibold">• ${escapeHtml(monthLabel)}</span>` : ''}
+          </div>
+          <button onclick="changeStage('nominations')" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-stone-900 hover:bg-black text-white text-xs font-bold transition shadow-xs">
+            <span>Iniciar Nova Rodada</span> <i class="ph ph-arrow-right"></i>
+          </button>
+        </div>
+
+        <div class="flex flex-col md:flex-row items-center md:items-start gap-6 sm:gap-8">
+          <!-- Capa -->
+          <div class="relative shrink-0 group">
+            <img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(book.title)}" class="w-44 h-64 sm:w-52 sm:h-76 object-cover rounded-2xl shadow-2xl border-2 border-gold/30 transition transform group-hover:scale-[1.02]" onerror="this.onerror=null; this.src=DEFAULT_BOOK_COVER;">
+            <div class="absolute inset-0 rounded-2xl ring-1 ring-black/5 pointer-events-none"></div>
+          </div>
+
+          <!-- Informações -->
+          <div class="flex-1 text-center md:text-left space-y-3 min-w-0">
+            <div class="space-y-1">
+              <span class="text-xs font-bold text-burgundy uppercase tracking-wider flex items-center justify-center md:justify-start gap-1">
+                <i class="ph ph-sparkle text-gold"></i> Indicado por ${escapeHtml(memberName || 'Integrante')}
+              </span>
+              <h2 class="text-2xl sm:text-4xl font-serif font-bold text-stone-900 leading-tight">${escapeHtml(book.title || 'Sem título')}</h2>
+              <p class="text-base sm:text-lg font-medium text-stone-600">${escapeHtml(book.author || 'Autor não informado')}</p>
+            </div>
+
+            ${book.description ? `<p class="text-xs sm:text-sm text-stone-600 italic font-serif line-clamp-3 bg-white/60 p-3 rounded-xl border border-stone-200/50">"${escapeHtml(book.description)}"</p>` : ''}
+
+            <div class="pt-2 flex flex-wrap items-center justify-center md:justify-start gap-2 text-xs text-stone-500">
+              ${drawDate ? `
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-stone-100 text-stone-700 font-medium">
+                  <i class="ph ph-calendar-blank text-burgundy"></i> Sorteado em ${escapeHtml(drawDate)}
+                </span>` : ''}
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-stone-100 text-stone-700 font-medium">
+                <i class="ph ph-users text-burgundy"></i> ${state.members.length} Leitores
+              </span>
+            </div>
+
+            <!-- Botões de Ação Separados -->
+            <div class="pt-4 flex flex-wrap items-center justify-center md:justify-start gap-2.5">
+              <button onclick="downloadCurrentMonthCard()" class="px-4 py-2.5 rounded-xl bg-stone-900 hover:bg-black text-white font-bold text-xs transition flex items-center gap-2 shadow-sm">
+                <i class="ph ph-download-simple text-sm text-gold"></i><span>Baixar Card</span>
+              </button>
+              <button onclick="shareMonthCardWhatsApp()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition flex items-center gap-2 shadow-sm shadow-emerald-700/20">
+                <i class="ph ph-whatsapp-logo text-sm"></i><span>Enviar para o WhatsApp</span>
+              </button>
+              <button onclick="openHistoryModal()" class="px-4 py-2.5 rounded-xl border border-stone-300 hover:border-stone-400 bg-white hover:bg-stone-50 text-stone-700 font-bold text-xs transition flex items-center gap-2 shadow-xs">
+                <i class="ph ph-clock-counter-clockwise text-sm text-burgundy"></i><span>Ver Histórico</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD CONVIDATIVO PARA O PRÓXIMO SORTEIO -->
+      <div class="p-5 rounded-2xl bg-white border border-[#EBE4D8] shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3 text-center sm:text-left">
+          <div class="w-11 h-11 rounded-2xl bg-burgundy/10 text-burgundy flex items-center justify-center text-2xl shrink-0">
+            <i class="ph ph-sparkle"></i>
+          </div>
+          <div>
+            <h4 class="font-serif font-bold text-sm text-stone-900">Preparando a Próxima Leitura?</h4>
+            <p class="text-xs text-stone-500">Inicie a rodada de indicações para o próximo encontro do clube.</p>
+          </div>
+        </div>
+        <button onclick="changeStage('nominations')" class="px-5 py-2.5 rounded-xl bg-burgundy hover:bg-burgundyLight text-white font-bold text-xs shadow-md shadow-burgundy/20 transition flex items-center gap-2 shrink-0">
+          <i class="ph ph-plus-circle text-base"></i><span>Iniciar Nova Rodada</span>
+        </button>
+      </div>
+    </div>
+  `;
+}

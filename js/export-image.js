@@ -199,16 +199,14 @@ async function generateYearMosaic() {
 }
 
 // ==========================================
-// CARD DO MÊS ATUAL
+// CARD DO MÊS ATUAL (CANVAS BUILDER)
 // ==========================================
-async function generateCurrentMonthCard() {
-  const winner = window.clubState.winner;
+async function renderCurrentMonthCardCanvas() {
+  const winner = window.clubState.winner || (window.clubState.history && window.clubState.history.length > 0 && window.clubState.history[0]?.winner ? { book: window.clubState.history[0].winner, member: window.clubState.history[0].winner.member } : null);
   if (!winner || !winner.book) {
     showToast('Nenhum livro vencedor definido ainda.', 'warning');
-    return;
+    return null;
   }
-
-  showToast('Gerando card do mês...', 'info');
 
   const canvasW = 1080;
   const canvasH = 1350; // Formato story 4:5
@@ -226,7 +224,7 @@ async function generateCurrentMonthCard() {
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, canvasW, canvasH);
 
-  // Decorações douradas
+  // Decorações douradas sutis
   ctx.fillStyle = 'rgba(212, 163, 89, 0.05)';
   ctx.beginPath();
   ctx.arc(900, 200, 350, 0, Math.PI * 2);
@@ -235,37 +233,31 @@ async function generateCurrentMonthCard() {
   ctx.arc(180, 1100, 300, 0, Math.PI * 2);
   ctx.fill();
 
-  // Header — badge
-  ctx.fillStyle = '#D4A359';
-  ctx.font = 'bold 22px "Plus Jakarta Sans", sans-serif';
-  ctx.textAlign = 'center';
-  ctx.letterSpacing = '4px';
-  ctx.fillText('✦  LIVRO DO MÊS  ✦', canvasW / 2, 100);
-
-  // Mês e ano
-  const monthLabel = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(new Date());
-  ctx.fillStyle = 'rgba(212, 163, 89, 0.7)';
-  ctx.font = '18px "Plus Jakarta Sans", sans-serif';
-  ctx.fillText(monthLabel.toUpperCase(), canvasW / 2, 140);
-
-  // Nome do clube
+  // Header Editorial Limpo (apenas 2 linhas harmônicas)
   const clubName = window.clubState.clubName || 'Clube do Livro';
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-  ctx.font = '16px "Plus Jakarta Sans", sans-serif';
-  ctx.fillText(clubName, canvasW / 2, 175);
+  const monthLabel = (window.clubState.history && window.clubState.history[0]?.monthLabel) || new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(new Date());
 
-  // Capa do livro (grande, centralizada)
+  ctx.fillStyle = '#D4A359';
+  ctx.font = 'bold 16px "Plus Jakarta Sans", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(clubName.toUpperCase(), canvasW / 2, 95);
+
+  ctx.fillStyle = '#FBFAF8';
+  ctx.font = 'bold 30px "Merriweather", Georgia, serif';
+  ctx.fillText(`Livro do Mês • ${monthLabel}`, canvasW / 2, 135);
+
+  // Capa do livro (sem coroa, posicionada harmonicamente)
   const coverImg = await loadImageForCanvas(winner.book.cover);
-  const bookW = 340;
-  const bookH = 500;
+  const bookW = 350;
+  const bookH = 510;
   const bookX = (canvasW - bookW) / 2;
-  const bookY = 230;
+  const bookY = 185;
 
   // Sombra do livro
   ctx.save();
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
-  ctx.shadowBlur = 40;
-  ctx.shadowOffsetY = 15;
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.65)';
+  ctx.shadowBlur = 45;
+  ctx.shadowOffsetY = 18;
   roundRect(ctx, bookX, bookY, bookW, bookH, 16);
   ctx.fillStyle = '#332A24';
   ctx.fill();
@@ -280,54 +272,118 @@ async function generateCurrentMonthCard() {
 
   // Borda dourada
   roundRect(ctx, bookX, bookY, bookW, bookH, 16);
-  ctx.strokeStyle = 'rgba(212, 163, 89, 0.5)';
+  ctx.strokeStyle = 'rgba(212, 163, 89, 0.45)';
   ctx.lineWidth = 2;
   ctx.stroke();
 
-  // Coroa emoji acima da capa
-  ctx.font = '60px serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('👑', canvasW / 2, 220);
-
   // Título do livro
-  const titleY = bookY + bookH + 70;
+  const titleY = bookY + bookH + 65;
   ctx.fillStyle = '#FBFAF8';
-  ctx.font = 'bold 42px "Merriweather", Georgia, serif';
+  ctx.font = 'bold 40px "Merriweather", Georgia, serif';
   ctx.textAlign = 'center';
   const titleLines = wrapText(ctx, winner.book.title, canvasW - 160);
   titleLines.forEach((line, i) => {
-    ctx.fillText(line, canvasW / 2, titleY + i * 52);
+    ctx.fillText(line, canvasW / 2, titleY + i * 50);
   });
 
   // Autor
-  const authorY = titleY + titleLines.length * 52 + 20;
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-  ctx.font = '26px "Plus Jakarta Sans", sans-serif';
+  const authorY = titleY + titleLines.length * 50 + 18;
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
+  ctx.font = '24px "Plus Jakarta Sans", sans-serif';
   ctx.fillText(winner.book.author || 'Autor não informado', canvasW / 2, authorY);
 
   // Divider dourado
-  const divY = authorY + 50;
-  ctx.strokeStyle = 'rgba(212, 163, 89, 0.4)';
+  const divY = authorY + 45;
+  ctx.strokeStyle = 'rgba(212, 163, 89, 0.35)';
   ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(canvasW / 2 - 100, divY);
-  ctx.lineTo(canvasW / 2 + 100, divY);
+  ctx.moveTo(canvasW / 2 - 90, divY);
+  ctx.lineTo(canvasW / 2 + 90, divY);
   ctx.stroke();
 
   // Indicado por
   ctx.fillStyle = '#D4A359';
   ctx.font = 'bold 20px "Plus Jakarta Sans", sans-serif';
-  ctx.fillText(`Indicado por ${winner.member}`, canvasW / 2, divY + 40);
+  ctx.fillText(`Indicado por ${winner.member}`, canvasW / 2, divY + 36);
+
+  // Data de Sorteio
+  const drawDateStr = (window.clubState.history && window.clubState.history[0]?.archivedAt) || new Date().toLocaleDateString('pt-BR');
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+  ctx.font = '15px "Plus Jakarta Sans", sans-serif';
+  ctx.fillText(`Sorteado em ${drawDateStr}`, canvasW / 2, divY + 66);
 
   // Footer
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
-  ctx.font = '14px "Plus Jakarta Sans", sans-serif';
-  ctx.fillText('📚 Gerado pelo Clube do Livro', canvasW / 2, canvasH - 40);
+  ctx.fillStyle = 'rgba(212, 163, 89, 0.35)';
+  ctx.font = '13px "Plus Jakarta Sans", sans-serif';
+  ctx.fillText('Clube do Livro', canvasW / 2, canvasH - 35);
 
-  // Download
+  return canvas;
+}
+
+// ==========================================
+// BAIXAR CARD
+// ==========================================
+async function downloadCurrentMonthCard() {
+  showToast('Gerando card para download...', 'info');
+  const canvas = await renderCurrentMonthCardCanvas();
+  if (!canvas) return;
+
+  const monthLabel = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(new Date());
   const monthSlug = monthLabel.replace(/\s+/g, '-').toLowerCase();
   downloadCanvasAsImage(canvas, `livro-do-mes-${monthSlug}.png`);
-  showToast('Card do mês gerado! Verifique seus downloads.', 'success');
+  showToast('Card baixado com sucesso!', 'success');
+}
+
+// ==========================================
+// ENVIAR PARA WHATSAPP
+// ==========================================
+async function shareMonthCardWhatsApp() {
+  showToast('Preparando envio para o WhatsApp...', 'info');
+  const winner = window.clubState.winner || (window.clubState.history && window.clubState.history.length > 0 && window.clubState.history[0]?.winner ? { book: window.clubState.history[0].winner, member: window.clubState.history[0].winner.member } : null);
+  if (!winner || !winner.book) return showToast('Nenhum livro definido ainda.', 'warning');
+
+  const title = winner.book.title;
+  const author = winner.book.author || 'Autor não informado';
+  const member = winner.member || 'Integrante';
+  const dateStr = (window.clubState.history && window.clubState.history[0]?.archivedAt) || new Date().toLocaleDateString('pt-BR');
+  
+  // Texto enxuto para WhatsApp
+  const message = `*Clube do Livro* 📚\nNosso próximo livro é *${title}*, de ${author}!\nIndicado por: ${member}\nSorteado em: ${dateStr}`;
+
+  const canvas = await renderCurrentMonthCardCanvas();
+  if (!canvas) return;
+
+  // Se o dispositivo suportar compartilhamento nativo de arquivo (Android / iOS)
+  if (navigator.share && navigator.canShare) {
+    try {
+      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+      const file = new File([blob], 'livro-do-mes.png', { type: 'image/png' });
+      if (navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: `Livro do Mês: ${title}`,
+          text: message
+        });
+        showToast('Compartilhado com sucesso!', 'success');
+        return;
+      }
+    } catch (err) {
+      if (err.name === 'AbortError') return; // Cancelado pelo usuário
+      console.warn('[Share] Fallback para link WhatsApp:', err);
+    }
+  }
+
+  // Fallback para desktop / navegadores sem suporte a compartilhamento de arquivo:
+  // Baixa o card e abre o WhatsApp com a mensagem enxuta
+  downloadCanvasAsImage(canvas, 'livro-do-mes.png');
+  const encodedMsg = encodeURIComponent(message);
+  window.open(`https://api.whatsapp.com/send?text=${encodedMsg}`, '_blank');
+  showToast('Card baixado! Anexe-o na mensagem do WhatsApp.', 'success');
+}
+
+// Retrocompatibilidade
+async function generateCurrentMonthCard() {
+  await downloadCurrentMonthCard();
 }
 
 // ==========================================
@@ -344,7 +400,6 @@ function downloadCanvasAsImage(canvas, filename) {
     link.remove();
   } catch (e) {
     console.error('[Export] Erro ao gerar imagem:', e);
-    // Fallback: tenta sem CORS (abre em nova janela)
     try {
       const dataUrl = canvas.toDataURL('image/png');
       window.open(dataUrl, '_blank');

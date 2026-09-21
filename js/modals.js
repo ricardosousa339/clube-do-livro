@@ -215,7 +215,10 @@ function renderHistoryList() {
         </div>
         <div class="flex flex-col items-end shrink-0 gap-2">
           <div class="text-right"><span class="text-[10px] text-stone-400 block">${item.archivedAt ? `Sorteado em: ${item.archivedAt}` : ''}</span>${item.finalists && item.finalists.length ? `<span class="text-[10px] text-stone-500 font-medium">Disputou com ${item.finalists.length - 1} finalistas</span>` : ''}</div>
-          <button onclick="deleteHistoryItem('${item.id}')" title="Excluir registro de teste" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition text-[10px] font-bold"><i class="ph ph-trash text-sm"></i><span>Excluir</span></button>
+          <div class="flex items-center gap-1.5">
+            <button onclick="openEditHistoryModal('${item.id}')" title="Editar dados da leitura" class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 transition text-[10px] font-bold"><i class="ph ph-pencil-simple text-xs"></i><span>Editar</span></button>
+            <button onclick="deleteHistoryItem('${item.id}')" title="Excluir registro" class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition text-[10px] font-bold"><i class="ph ph-trash text-xs"></i><span>Excluir</span></button>
+          </div>
         </div>
       </div>`;
   }).join('');
@@ -225,8 +228,8 @@ function renderHistoryList() {
     container.innerHTML += `
       <div class="mt-4 pt-4 border-t border-stone-200">
         <button onclick="generateYearMosaic()" class="w-full py-3 rounded-2xl bg-gradient-to-r from-[#2D211C] to-[#3D2F28] hover:from-[#3D2F28] hover:to-[#4a3b32] text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md transition">
-          <i class="ph ph-image text-base text-gold"></i>
-          <span>📸 Gerar Mosaico do Ano para Instagram/WhatsApp</span>
+          <i class="ph ph-grid-four text-base text-gold"></i>
+          <span>Gerar Mosaico Anual (Retrospectiva)</span>
         </button>
       </div>
     `;
@@ -424,10 +427,136 @@ function removeFridgeItem(index) {
 }
 
 function deleteHistoryItem(id) {
+  if (!confirm('Deseja excluir este registro do histórico?')) return;
   if (!window.clubState.history) return;
   window.clubState.history = window.clubState.history.filter(h => h.id !== id);
   persistState('state.history');
   renderHistoryModalContent(); 
   if (typeof window.renderUI === 'function') window.renderUI(); 
   showToast('Registro excluído do histórico!', 'info');
+}
+
+// ==========================================
+// EDIÇÃO DE LIVRO DO HISTÓRICO (ADMIN)
+// ==========================================
+function openEditHistoryModal(id) {
+  if (!window.clubState.history) return;
+  const item = window.clubState.history.find(h => h.id === id);
+  if (!item || !item.winner) return showToast('Registro não encontrado.', 'warning');
+
+  const modal = document.getElementById('editHistoryModal');
+  if (!modal) return;
+
+  document.getElementById('editHistoryId').value = item.id;
+  document.getElementById('editHistoryTitle').value = item.winner.title || '';
+  document.getElementById('editHistoryAuthor').value = item.winner.author || '';
+  document.getElementById('editHistoryCoverUrl').value = item.winner.cover || '';
+  document.getElementById('editHistoryMonthLabel').value = item.monthLabel || item.archivedAt || '';
+
+  const preview = document.getElementById('editHistoryCoverPreview');
+  if (preview) {
+    preview.src = item.winner.cover || DEFAULT_BOOK_COVER;
+    preview.onerror = function() { this.onerror = null; this.src = DEFAULT_BOOK_COVER; };
+  }
+
+  modal.classList.remove('hidden');
+  setupHistoryCoverDropZone();
+}
+
+function closeEditHistoryModal() {
+  const modal = document.getElementById('editHistoryModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function updateHistoryCoverPreview() {
+  const url = (document.getElementById('editHistoryCoverUrl')?.value || '').trim();
+  const preview = document.getElementById('editHistoryCoverPreview');
+  if (preview && url) {
+    preview.src = url;
+    preview.onerror = function() { this.onerror = null; this.src = DEFAULT_BOOK_COVER; };
+  }
+}
+
+function searchGoogleForHistoryCover() {
+  const title = (document.getElementById('editHistoryTitle')?.value || '').trim();
+  const author = (document.getElementById('editHistoryAuthor')?.value || '').trim();
+  if (!title && !author) return showToast('Preencha o título ou autor antes de buscar.', 'warning');
+
+  const query = `${title} ${author} capa livro`.trim();
+  window.open(`https://www.google.com/search?tbm=isch&q=${encodeURIComponent(query)}`, '_blank');
+}
+
+async function saveHistoryItemEdit() {
+  const id = document.getElementById('editHistoryId')?.value;
+  if (!id || !window.clubState.history) return;
+
+  const item = window.clubState.history.find(h => h.id === id);
+  if (!item || !item.winner) return showToast('Registro não encontrado.', 'danger');
+
+  const title = (document.getElementById('editHistoryTitle')?.value || '').trim();
+  const author = (document.getElementById('editHistoryAuthor')?.value || '').trim();
+  const coverUrl = (document.getElementById('editHistoryCoverUrl')?.value || '').trim();
+  const monthLabel = (document.getElementById('editHistoryMonthLabel')?.value || '').trim();
+
+  if (!title) return showToast('Informe ao menos o título do livro.', 'warning');
+
+  item.winner.title = title;
+  item.winner.author = author || 'Autor não informado';
+  item.winner.cover = coverUrl || item.winner.cover || DEFAULT_BOOK_COVER;
+  if (monthLabel) item.monthLabel = monthLabel;
+
+  invalidateRenderCache();
+  await persistState('state.history');
+  renderHistoryModalContent();
+  if (typeof window.renderUI === 'function') window.renderUI();
+  closeEditHistoryModal();
+  showToast('Leitura atualizada com sucesso!', 'success');
+}
+
+function setupHistoryCoverDropZone() {
+  const dropZone = document.getElementById('historyCoverDropZone');
+  if (!dropZone || dropZone._dropInitialized) return;
+  dropZone._dropInitialized = true;
+
+  dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.classList.add('border-burgundy', 'bg-burgundy/5');
+    dropZone.classList.remove('border-stone-300');
+  });
+
+  dropZone.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('border-burgundy', 'bg-burgundy/5');
+    dropZone.classList.add('border-stone-300');
+  });
+
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('border-burgundy', 'bg-burgundy/5');
+    dropZone.classList.add('border-stone-300');
+
+    const htmlData = e.dataTransfer.getData('text/html');
+    const textData = e.dataTransfer.getData('text/plain');
+    let imageUrl = '';
+
+    if (htmlData) {
+      const match = htmlData.match(/src=["']([^"']+)["']/i);
+      if (match && match[1]) imageUrl = match[1];
+    }
+
+    if (!imageUrl && textData && (textData.match(/^https?:\/\/.+\.(jpg|jpeg|png|gif|webp)/i) || textData.match(/^https?:\/\//))) {
+      imageUrl = textData;
+    }
+
+    if (imageUrl) {
+      const coverInput = document.getElementById('editHistoryCoverUrl');
+      if (coverInput) {
+        coverInput.value = imageUrl;
+        updateHistoryCoverPreview();
+      }
+      showToast('Imagem capturada! Verifique o preview.', 'success');
+    } else {
+      showToast('Não foi possível extrair a URL da imagem arrastada.', 'warning');
+    }
+  });
 }
