@@ -6,38 +6,15 @@ function getEligibleForDraw() {
   const tally = calculateFinalists().filter(f => !!f.survivingBook);
   const cycle = window.clubState.closedCycle;
 
-  if (!cycle || !cycle.enabled) {
-    return { eligible: tally, champions: [], allTally: tally };
-  }
-
-  // Se winners estiver vazio, tenta carregar campeão(ões) do histórico (ex: primeiro sorteio já ocorrido)
-  if (!cycle.winners || cycle.winners.length === 0) {
-    const hist = window.clubState.history || [];
-    const mems = window.clubState.members || [];
-    if (hist.length > 0 && mems.length > 0) {
-      cycle.winners = cycle.winners || [];
-      for (const h of hist) {
-        if (cycle.winners.length >= mems.length) break;
-        const winnerMember = mems.find(m => m.name === h.winner?.member || m.id === h.winner?.memberId);
-        if (winnerMember && !cycle.winners.includes(winnerMember.id)) {
-          cycle.winners.push(winnerMember.id);
-        }
-      }
-      if (cycle.winners.length >= mems.length) cycle.winners = [];
-    }
-  }
-
-  if (!cycle.winners || cycle.winners.length === 0) {
+  if (!cycle || !cycle.enabled || !Array.isArray(cycle.winners) || cycle.winners.length === 0) {
     return { eligible: tally, champions: [], allTally: tally };
   }
 
   const eligible = tally.filter(f => !cycle.winners.includes(f.member.id));
   const champions = tally.filter(f => cycle.winners.includes(f.member.id));
 
-  // Se todos foram filtrados (todos já são campeões), reinicia o ciclo
+  // Se todos foram filtrados (todos os finalistas já foram campeões neste ciclo), todos concorrem
   if (eligible.length === 0 && tally.length > 0) {
-    window.clubState.closedCycle.winners = [];
-    persistState('state.closedCycle');
     return { eligible: tally, champions: [], allTally: tally };
   }
 

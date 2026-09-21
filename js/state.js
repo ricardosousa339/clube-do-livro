@@ -33,6 +33,7 @@ console.log('%c[Clube do Livro] v6.1-stable carregado', 'color: #832837; font-we
 // ==========================================
 // ASSINATURAS DE CACHE (impede re-render desnecessário)
 // ==========================================
+var _lastHomeScreenSignature = '';
 var _lastNominationsSignature = '';
 var _lastVotingCanvasSignature = '';
 var _lastResultsSignature = '';
@@ -40,6 +41,7 @@ var _lastRouletteCardsSignature = '';
 var _lastWinnerCardSignature = '';
 
 function invalidateRenderCache() {
+  _lastHomeScreenSignature = '';
   _lastNominationsSignature = '';
   _lastVotingCanvasSignature = '';
   _lastResultsSignature = '';

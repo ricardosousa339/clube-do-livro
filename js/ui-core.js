@@ -214,6 +214,19 @@ function renderHomeScreen() {
     drawDate = latestHistory.archivedAt || '';
   }
 
+  const homeSignature = JSON.stringify({
+    title: book?.title || '',
+    author: book?.author || '',
+    cover: book?.cover || '',
+    memberName,
+    monthLabel,
+    drawDate,
+    membersCount: state.members.length
+  });
+
+  if (_lastHomeScreenSignature === homeSignature && container.children.length > 0) return;
+  _lastHomeScreenSignature = homeSignature;
+
   if (!book) {
     // Estado Vazio: Nenhum livro sorteado ainda
     container.innerHTML = `

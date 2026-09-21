@@ -236,24 +236,22 @@ function handleIncomingState(data) {
   if (!window.clubState.members) window.clubState.members = [];
   if (!window.clubState.votes) window.clubState.votes = {};
   if (!window.clubState.fridge) window.clubState.fridge = [];
-  if (!window.clubState.closedCycle) window.clubState.closedCycle = { enabled: true, winners: [] };
-  // Inicializa campeões a partir do histórico existente (ex: primeiro sorteio já ocorrido no clube)
-  if (window.clubState.closedCycle.enabled && (!window.clubState.closedCycle.winners || window.clubState.closedCycle.winners.length === 0)) {
+  if (!window.clubState.closedCycle) {
+    // Sala legada sem closedCycle no Firestore: inicializa com histórico anterior uma única vez
+    const initialWinners = [];
     const hist = window.clubState.history || [];
     const mems = window.clubState.members || [];
     if (hist.length > 0 && mems.length > 0) {
-      window.clubState.closedCycle.winners = window.clubState.closedCycle.winners || [];
       for (const h of hist) {
-        if (window.clubState.closedCycle.winners.length >= mems.length) break;
+        if (initialWinners.length >= mems.length) break;
         const winnerMember = mems.find(m => m.name === h.winner?.member || m.id === h.winner?.memberId);
-        if (winnerMember && !window.clubState.closedCycle.winners.includes(winnerMember.id)) {
-          window.clubState.closedCycle.winners.push(winnerMember.id);
+        if (winnerMember && !initialWinners.includes(winnerMember.id)) {
+          initialWinners.push(winnerMember.id);
         }
       }
-      if (window.clubState.closedCycle.winners.length >= mems.length) {
-        window.clubState.closedCycle.winners = [];
-      }
+      if (initialWinners.length >= mems.length) initialWinners.length = 0;
     }
+    window.clubState.closedCycle = { enabled: true, winners: initialWinners };
   }
 
   if (data.drawEvent && data.drawEvent.timestamp && data.drawEvent.timestamp !== window.lastDrawTimestamp) {

@@ -1330,27 +1330,5 @@ async function adminInitCycleFromHistory() {
 // ==========================================
 window.addEventListener('DOMContentLoaded', () => {
   initAdminBadgeTrigger();
-
-  // Inicializar ciclo fechado a partir do histórico se tiver dados
-  setTimeout(() => {
-    const cycle = window.clubState.closedCycle;
-    if (cycle && cycle.enabled && cycle.winners.length === 0) {
-      const history = window.clubState.history || [];
-      const members = window.clubState.members || [];
-      if (history.length > 0 && members.length > 0) {
-        // Auto-preenche campeões do histórico recente
-        for (const h of history) {
-          if (cycle.winners.length >= members.length) break;
-          const winnerMember = members.find(m => m.name === h.winner?.member);
-          if (winnerMember && !cycle.winners.includes(winnerMember.id)) {
-            cycle.winners.push(winnerMember.id);
-          }
-        }
-        // Se completou o ciclo, reinicia
-        if (cycle.winners.length >= members.length && members.length > 0) {
-          cycle.winners = [];
-        }
-      }
-    }
-  }, 3000); // Aguarda sync inicial
 });
+
