@@ -48,3 +48,16 @@
       box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
     }
 
+    /* Proporção Padrão de Capa de Livro (2:3 / 1:1.5) */
+    .book-cover {
+      aspect-ratio: 2 / 3 !important;
+      height: auto !important;
+      object-fit: cover !important;
+      object-position: center !important;
+    }
+    .book-cover-container {
+      aspect-ratio: 2 / 3 !important;
+      height: auto !important;
+    }
+
+

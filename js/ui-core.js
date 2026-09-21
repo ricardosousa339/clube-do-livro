@@ -269,9 +269,9 @@ function renderHomeScreen() {
         </div>
 
         <div class="flex flex-col md:flex-row items-center md:items-start gap-6 sm:gap-8">
-          <!-- Capa -->
+          <!-- Capa com proporção padrão 2:3 -->
           <div class="relative shrink-0 group">
-            <img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(book.title)}" class="w-44 h-64 sm:w-52 sm:h-76 object-cover rounded-2xl shadow-2xl border-2 border-gold/30 transition transform group-hover:scale-[1.02]" onerror="this.onerror=null; this.src=DEFAULT_BOOK_COVER;">
+            <img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(book.title)}" class="w-44 sm:w-56 aspect-[2/3] object-cover rounded-2xl shadow-2xl border-2 border-gold/30 transition transform group-hover:scale-[1.02] book-cover" onerror="this.onerror=null; this.src=DEFAULT_BOOK_COVER;">
             <div class="absolute inset-0 rounded-2xl ring-1 ring-black/5 pointer-events-none"></div>
           </div>
 

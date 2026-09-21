@@ -43,8 +43,8 @@ function renderNominationsGrid() {
           <h3 class="font-serif font-bold text-emerald-900 text-2xl mb-1">Tudo certo, ${escapeHtml(me.name)}!</h3>
           <p class="text-sm text-emerald-700 mb-8 max-w-md mx-auto">Suas opções foram salvas. Aguarde os outros colegas finalizarem.</p>
           <div class="flex flex-wrap items-center justify-center gap-6 mb-8">
-            <div class="flex flex-col items-center"><span class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-2">1ª Opção</span><img src="${me.book1.cover || DEFAULT_BOOK_COVER}" class="w-20 h-28 object-cover rounded-xl shadow-sm border border-emerald-100 bg-white p-1" loading="lazy" decoding="async" onerror="this.onerror=null; this.src=DEFAULT_BOOK_COVER;"></div>
-            <div class="flex flex-col items-center"><span class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-2">2ª Opção</span><img src="${me.book2.cover || DEFAULT_BOOK_COVER}" class="w-20 h-28 object-cover rounded-xl shadow-sm border border-emerald-100 bg-white p-1" loading="lazy" decoding="async" onerror="this.onerror=null; this.src=DEFAULT_BOOK_COVER;"></div>
+            <div class="flex flex-col items-center"><span class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-2">1ª Opção</span><img src="${me.book1.cover || DEFAULT_BOOK_COVER}" class="w-20 aspect-[2/3] object-cover rounded-lg shadow-sm border border-emerald-100 bg-white p-0.5 book-cover" loading="lazy" decoding="async" onerror="this.onerror=null; this.src=DEFAULT_BOOK_COVER;"></div>
+            <div class="flex flex-col items-center"><span class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-2">2ª Opção</span><img src="${me.book2.cover || DEFAULT_BOOK_COVER}" class="w-20 aspect-[2/3] object-cover rounded-lg shadow-sm border border-emerald-100 bg-white p-0.5 book-cover" loading="lazy" decoding="async" onerror="this.onerror=null; this.src=DEFAULT_BOOK_COVER;"></div>
           </div>
           <div class="bg-white/70 rounded-xl p-4 inline-block backdrop-blur-sm border border-emerald-100/50">
             <p class="text-xs font-bold text-stone-500 mb-3 uppercase tracking-wider">Status do Clube</p>
@@ -114,7 +114,7 @@ function renderFridgeBanner(me) {
 
   let items = fridge.map((item, idx) => `
     <div class="flex items-center gap-3 p-3 rounded-xl bg-white/80 border border-sky-200/60 hover:border-sky-300 transition group">
-      <img src="${item.cover || DEFAULT_BOOK_COVER}" class="w-10 h-14 object-cover rounded-lg shadow-xs shrink-0" loading="lazy" decoding="async" onerror="this.onerror=null; this.src=DEFAULT_BOOK_COVER;">
+      <img src="${item.cover || DEFAULT_BOOK_COVER}" class="w-10 aspect-[2/3] object-cover rounded-lg shadow-xs shrink-0 book-cover" loading="lazy" decoding="async" onerror="this.onerror=null; this.src=DEFAULT_BOOK_COVER;">
       <div class="min-w-0 flex-1">
         <h5 class="text-xs font-bold text-stone-900 truncate">${escapeHtml(item.title)}</h5>
         <p class="text-[10px] text-stone-500 truncate">${escapeHtml(item.author || '')} • Indicação de ${escapeHtml(item.memberName || 'membro')}</p>
@@ -177,8 +177,8 @@ function renderBigBookSlot(member, bookKey, label) {
   }
   return `
     <div class="relative group rounded-[1.5rem] border border-stone-200 bg-[#FDFBF7] p-5 flex flex-col sm:flex-row gap-5 min-h-[220px] shadow-sm hover:shadow-md transition">
-      <div class="w-28 h-40 sm:w-32 sm:h-48 shrink-0 rounded-xl overflow-hidden bg-stone-200 shadow-md relative mx-auto sm:mx-0">
-        <img src="${book.cover || DEFAULT_BOOK_COVER}" class="w-full h-full object-cover" loading="lazy" decoding="async" onerror="this.onerror=null; this.src=DEFAULT_BOOK_COVER;">
+      <div class="w-28 sm:w-32 aspect-[2/3] shrink-0 rounded-xl overflow-hidden bg-stone-200 shadow-md relative mx-auto sm:mx-0 book-cover-container">
+        <img src="${book.cover || DEFAULT_BOOK_COVER}" class="w-full h-full object-cover book-cover" loading="lazy" decoding="async" onerror="this.onerror=null; this.src=DEFAULT_BOOK_COVER;">
         <div class="absolute top-2 left-2 px-2 py-1 rounded text-[10px] font-black ${isPriority ? 'bg-gold text-stone-900 shadow-sm' : 'bg-stone-800 text-white shadow-sm'}">${isPriority ? 'OPÇÃO 1' : 'OPÇÃO 2'}</div>
       </div>
       <div class="flex flex-col justify-between min-w-0 flex-1 text-center sm:text-left py-1">
@@ -288,7 +288,7 @@ async function executeBookSearch(query) {
     list.innerHTML = window.currentSearchResults.map((book, index) => {
       return `
         <div onclick='selectBookFromSearchIndex(${index})' class="cursor-pointer p-2.5 rounded-xl border border-stone-200 hover:border-burgundy hover:bg-stone-50 flex items-center gap-3 transition">
-          <img src="${book.cover || DEFAULT_BOOK_COVER}" class="w-11 h-16 object-cover rounded bg-stone-100 shrink-0" loading="lazy" decoding="async" onerror="this.onerror=null; this.src=DEFAULT_BOOK_COVER;">
+          <img src="${book.cover || DEFAULT_BOOK_COVER}" class="w-11 aspect-[2/3] object-cover rounded bg-stone-100 shrink-0 book-cover" loading="lazy" decoding="async" onerror="this.onerror=null; this.src=DEFAULT_BOOK_COVER;">
           <div class="min-w-0 flex-1 text-left"><h5 class="text-xs font-bold text-stone-900 line-clamp-1">${escapeHtml(book.title)}</h5><p class="text-[11px] text-stone-500 truncate">${escapeHtml(book.author)}</p><span class="text-[10px] text-burgundy font-medium mt-1 inline-block">Selecionar esta obra →</span></div>
         </div>`;
     }).join('');

@@ -81,6 +81,31 @@ function roundRect(ctx, x, y, w, h, r) {
   ctx.closePath();
 }
 
+// Helper: desenha imagem preservando proporção real da capa sem distorcer ou achatar
+function drawImageProp(ctx, img, x, y, w, h) {
+  const nw = img.naturalWidth || img.width;
+  const nh = img.naturalHeight || img.height;
+  if (!nw || !nh) {
+    ctx.drawImage(img, x, y, w, h);
+    return;
+  }
+  const imgRatio = nw / nh;
+  const targetRatio = w / h;
+  let sx, sy, sw, sh;
+  if (imgRatio > targetRatio) {
+    sh = nh;
+    sw = nh * targetRatio;
+    sx = (nw - sw) / 2;
+    sy = 0;
+  } else {
+    sw = nw;
+    sh = nw / targetRatio;
+    sx = 0;
+    sy = (nh - sh) / 2;
+  }
+  ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
+}
+
 // ==========================================
 // MOSAICO ANUAL
 // ==========================================
@@ -106,8 +131,9 @@ async function generateYearMosaic() {
   const cols = Math.min(booksToRender.length, 5);
   const rows = Math.ceil(booksToRender.length / cols);
 
+  // Proporção Padrão de Capa de Livro 2:3 (160 x 240 px)
   const coverW = 160;
-  const coverH = 230;
+  const coverH = 240;
   const gap = 20;
   const padding = 60;
   const headerH = 140;
@@ -177,7 +203,7 @@ async function generateYearMosaic() {
     ctx.save();
     roundRect(ctx, x, y, coverW, coverH, 12);
     ctx.clip();
-    ctx.drawImage(coverImages[i], x, y, coverW, coverH);
+    drawImageProp(ctx, coverImages[i], x, y, coverW, coverH);
     ctx.restore();
 
     // Borda sutil
@@ -246,9 +272,9 @@ async function renderCurrentMonthCardCanvas() {
   ctx.font = 'bold 30px "Merriweather", Georgia, serif';
   ctx.fillText(`Livro do Mês • ${monthLabel}`, canvasW / 2, 135);
 
-  // Capa do livro (sem coroa, posicionada harmonicamente)
+  // Capa do livro na proporção padrão 2:3 (340 x 510 px)
   const coverImg = await loadImageForCanvas(winner.book.cover);
-  const bookW = 350;
+  const bookW = 340;
   const bookH = 510;
   const bookX = (canvasW - bookW) / 2;
   const bookY = 185;
@@ -263,11 +289,11 @@ async function renderCurrentMonthCardCanvas() {
   ctx.fill();
   ctx.restore();
 
-  // Capa com clip arredondado
+  // Capa com clip arredondado e proporção preservada
   ctx.save();
   roundRect(ctx, bookX, bookY, bookW, bookH, 16);
   ctx.clip();
-  ctx.drawImage(coverImg, bookX, bookY, bookW, bookH);
+  drawImageProp(ctx, coverImg, bookX, bookY, bookW, bookH);
   ctx.restore();
 
   // Borda dourada

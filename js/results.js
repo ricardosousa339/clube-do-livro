@@ -70,14 +70,14 @@ function renderResultsGrid() {
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div class="p-3 rounded-2xl border ${isB1Surviving ? 'border-emerald-400 bg-emerald-50/40' : 'border-rose-200 bg-rose-50/30 opacity-70'} flex gap-3 relative">
-              <img src="${b1?.cover || DEFAULT_BOOK_COVER}" class="w-14 h-20 object-cover rounded-lg shrink-0 shadow-xs" loading="lazy" decoding="async" onerror="this.onerror=null; this.src=DEFAULT_BOOK_COVER;">
+              <img src="${b1?.cover || DEFAULT_BOOK_COVER}" class="w-14 aspect-[2/3] object-cover rounded-lg shrink-0 shadow-xs book-cover" loading="lazy" decoding="async" onerror="this.onerror=null; this.src=DEFAULT_BOOK_COVER;">
               <div class="min-w-0 flex-1 flex flex-col justify-between">
                 <div><span class="text-[9px] font-black uppercase tracking-wider text-stone-400">1ª Opção</span><h4 class="font-serif font-bold text-xs text-stone-900 line-clamp-2 leading-tight">${escapeHtml(b1?.title || 'Sem título')}</h4></div>
                 <div class="mt-1 flex items-center justify-between"><span class="text-[10px] font-bold ${isB1Surviving ? 'text-emerald-700' : 'text-rose-600'}">${isB1Surviving ? '★ SOBREVIVEU' : '✕ ELIMINADO'}</span><span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-white text-stone-600 border">${res.vetoesBook1} veto(s)</span></div>
               </div>
             </div>
             <div class="p-3 rounded-2xl border ${!isB1Surviving ? 'border-emerald-400 bg-emerald-50/40' : 'border-rose-200 bg-rose-50/30 opacity-70'} flex gap-3 relative">
-              <img src="${b2?.cover || DEFAULT_BOOK_COVER}" class="w-14 h-20 object-cover rounded-lg shrink-0 shadow-xs" loading="lazy" decoding="async" onerror="this.onerror=null; this.src=DEFAULT_BOOK_COVER;">
+              <img src="${b2?.cover || DEFAULT_BOOK_COVER}" class="w-14 aspect-[2/3] object-cover rounded-lg shrink-0 shadow-xs book-cover" loading="lazy" decoding="async" onerror="this.onerror=null; this.src=DEFAULT_BOOK_COVER;">
               <div class="min-w-0 flex-1 flex flex-col justify-between">
                 <div><span class="text-[9px] font-black uppercase tracking-wider text-stone-400">2ª Opção</span><h4 class="font-serif font-bold text-xs text-stone-900 line-clamp-2 leading-tight">${escapeHtml(b2?.title || 'Sem título')}</h4></div>
                 <div class="mt-1 flex items-center justify-between"><span class="text-[10px] font-bold ${!isB1Surviving ? 'text-emerald-700' : 'text-rose-600'}">${!isB1Surviving ? '★ SOBREVIVEU' : '✕ ELIMINADO'}</span><span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-white text-stone-600 border">${res.vetoesBook2} veto(s)</span></div>
@@ -93,7 +93,7 @@ function renderResultsGrid() {
     if (!book) return '';
     return `
       <div class="p-3.5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 flex items-center gap-3">
-        <img src="${book.cover || DEFAULT_BOOK_COVER}" class="w-12 h-16 object-cover rounded-lg shadow-sm shrink-0" loading="lazy" decoding="async" onerror="this.onerror=null; this.src=DEFAULT_BOOK_COVER;">
+        <img src="${book.cover || DEFAULT_BOOK_COVER}" class="w-12 aspect-[2/3] object-cover rounded-lg shadow-sm shrink-0 book-cover" loading="lazy" decoding="async" onerror="this.onerror=null; this.src=DEFAULT_BOOK_COVER;">
         <div class="min-w-0"><span class="text-[10px] font-bold text-gold uppercase tracking-wider block truncate">${escapeHtml(res.member.name)}</span><h5 class="font-serif font-bold text-xs text-white truncate">${escapeHtml(book.title)}</h5><p class="text-[10px] text-stone-300 truncate">${escapeHtml(book.author || '')}</p></div>
       </div>`;
   }).join('');

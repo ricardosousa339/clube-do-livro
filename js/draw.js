@@ -64,7 +64,7 @@ function renderRouletteView() {
           <div id="drawCandidate-${index}" class="roulette-card bg-stone-100 rounded-2xl p-3 border-2 border-stone-300 transition-all duration-200 flex flex-col items-center text-center relative opacity-60">
             <div class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-md text-[8px] font-black bg-gold text-stone-900 shadow-xs">🏆 CAMPEÃO</div>
             <div id="drawOnlineDot-${index}" class="absolute top-2 right-2 w-3 h-3 rounded-full border border-white shadow-sm bg-stone-300" title="Offline"></div>
-            <img src="${book.cover || DEFAULT_BOOK_COVER}" class="w-20 h-28 object-cover rounded-xl shadow-md mb-2 grayscale opacity-70" loading="lazy" decoding="async" onerror="this.onerror=null; this.src=DEFAULT_BOOK_COVER;">
+            <img src="${book.cover || DEFAULT_BOOK_COVER}" class="w-20 aspect-[2/3] object-cover rounded-lg shadow-md mb-2 grayscale opacity-70 book-cover" loading="lazy" decoding="async" onerror="this.onerror=null; this.src=DEFAULT_BOOK_COVER;">
             <span class="text-[10px] font-bold text-stone-400 uppercase truncate max-w-full">${escapeHtml(res.member.name)}</span>
             <h4 class="font-serif font-bold text-xs text-stone-500 line-clamp-2 mt-0.5">${escapeHtml(book.title)}</h4>
             <span class="text-[8px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded mt-1 inline-block">Fora da Roleta</span>
@@ -74,7 +74,7 @@ function renderRouletteView() {
       return `
         <div id="drawCandidate-${index}" class="roulette-card bg-stone-50 rounded-2xl p-3 border-2 border-stone-200 transition-all duration-200 flex flex-col items-center text-center relative">
           <div id="drawOnlineDot-${index}" class="absolute top-2 right-2 w-3 h-3 rounded-full border border-white shadow-sm bg-stone-300" title="Offline"></div>
-          <img src="${book.cover || DEFAULT_BOOK_COVER}" class="w-20 h-28 object-cover rounded-xl shadow-md mb-2" loading="lazy" decoding="async" onerror="this.onerror=null; this.src=DEFAULT_BOOK_COVER;">
+          <img src="${book.cover || DEFAULT_BOOK_COVER}" class="w-20 aspect-[2/3] object-cover rounded-lg shadow-md mb-2 book-cover" loading="lazy" decoding="async" onerror="this.onerror=null; this.src=DEFAULT_BOOK_COVER;">
           <span class="text-[10px] font-bold text-burgundy uppercase truncate max-w-full">${escapeHtml(res.member.name)}</span>
           <h4 class="font-serif font-bold text-xs text-stone-900 line-clamp-2 mt-0.5">${escapeHtml(book.title)}</h4>
         </div>`;
@@ -343,7 +343,7 @@ function renderWinnerCard(winnerData) {
       </div>
 
       <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6">
-        <img src="${book.cover || DEFAULT_BOOK_COVER}" alt="${escapeHtml(book.title)}" class="w-36 h-52 object-cover rounded-2xl shadow-xl border border-gold/30 shrink-0" loading="lazy" decoding="async" onerror="this.onerror=null; this.src=DEFAULT_BOOK_COVER;">
+        <img src="${book.cover || DEFAULT_BOOK_COVER}" alt="${escapeHtml(book.title)}" class="w-36 sm:w-44 aspect-[2/3] object-cover rounded-2xl shadow-xl border border-gold/30 shrink-0 book-cover" loading="lazy" decoding="async" onerror="this.onerror=null; this.src=DEFAULT_BOOK_COVER;">
         
         <div class="flex-1 text-center sm:text-left space-y-2 w-full">
           <span class="text-xs font-bold text-burgundy uppercase tracking-wider">Indicado por ${escapeHtml(member)}</span>

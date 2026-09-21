@@ -210,7 +210,7 @@ function renderHistoryList() {
     return `
       <div class="p-4 rounded-2xl bg-stone-50 border border-stone-200 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div class="flex items-center gap-3 min-w-0">
-          <img src="${w.cover || DEFAULT_BOOK_COVER}" alt="${escapeHtml(w.title)}" class="w-14 h-20 object-cover rounded-xl shadow-xs shrink-0" loading="lazy" decoding="async" onerror="this.onerror=null; this.src=DEFAULT_BOOK_COVER;">
+          <img src="${w.cover || DEFAULT_BOOK_COVER}" alt="${escapeHtml(w.title)}" class="w-14 aspect-[2/3] object-cover rounded-lg shadow-xs shrink-0 book-cover" loading="lazy" decoding="async" onerror="this.onerror=null; this.src=DEFAULT_BOOK_COVER;">
           <div class="min-w-0"><span class="text-[10px] font-extrabold uppercase text-burgundy bg-burgundy/10 px-2 py-0.5 rounded-full inline-block mb-1">${escapeHtml(item.monthLabel || item.archivedAt)}</span><h4 class="font-serif font-bold text-sm text-stone-900 truncate">${escapeHtml(w.title)}</h4><p class="text-xs text-stone-500 truncate">${escapeHtml(w.author)}</p><span class="text-[11px] text-stone-600 font-medium mt-0.5 block">Indicação vencedora de: <strong>${escapeHtml(w.member)}</strong></span></div>
         </div>
         <div class="flex flex-col items-end shrink-0 gap-2">
@@ -401,7 +401,7 @@ function renderFridgeTab() {
       ${fridge.map((item, idx) => `
         <div class="p-3 rounded-2xl bg-stone-50 border border-stone-200 flex items-center gap-3 justify-between">
           <div class="flex items-center gap-3 min-w-0">
-            <img src="${item.cover || DEFAULT_BOOK_COVER}" class="w-12 h-16 object-cover rounded-xl shadow-xs shrink-0" loading="lazy" decoding="async" onerror="this.onerror=null; this.src=DEFAULT_BOOK_COVER;">
+            <img src="${item.cover || DEFAULT_BOOK_COVER}" class="w-12 aspect-[2/3] object-cover rounded-lg shadow-xs shrink-0 book-cover" loading="lazy" decoding="async" onerror="this.onerror=null; this.src=DEFAULT_BOOK_COVER;">
             <div class="min-w-0">
               <h5 class="font-serif font-bold text-xs text-stone-900 truncate">${escapeHtml(item.title)}</h5>
               <p class="text-[10px] text-stone-500 truncate">${escapeHtml(item.author || '')}</p>

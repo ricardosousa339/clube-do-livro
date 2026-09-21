@@ -640,7 +640,7 @@ function renderAdminBookCard(member, slot, book) {
   if (!book) {
     return `
       <div class="p-3 rounded-xl bg-stone-900 border border-dashed border-stone-800 text-stone-600 flex items-center gap-3">
-        <div class="w-10 h-14 rounded-lg bg-stone-950 border border-stone-800 flex items-center justify-center text-stone-700 text-xs font-mono shrink-0">
+        <div class="w-10 aspect-[2/3] rounded-lg bg-stone-950 border border-stone-800 flex items-center justify-center text-stone-700 text-xs font-mono shrink-0">
           #${slot}
         </div>
         <div class="min-w-0">
@@ -656,7 +656,7 @@ function renderAdminBookCard(member, slot, book) {
   return `
     <div class="p-3 rounded-xl bg-stone-900 border border-stone-800 flex items-center justify-between gap-3">
       <div class="flex items-center gap-3 min-w-0">
-        <img src="${escapeHtml(coverUrl)}" alt="Capa" class="w-10 h-14 object-cover rounded-lg bg-stone-950 border border-stone-800 shrink-0" onerror="this.onerror=null; this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 40 56%22><rect width=%2240%22 height=%2256%22 fill=%22%23262626%22/></svg>';">
+        <img src="${escapeHtml(coverUrl)}" alt="Capa" class="w-10 aspect-[2/3] object-cover rounded-lg bg-stone-950 border border-stone-800 shrink-0 book-cover" onerror="this.onerror=null; this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 40 60%22><rect width=%2240%22 height=%2260%22 fill=%22%23262626%22/></svg>';">
         <div class="min-w-0">
           <span class="text-[10px] font-extrabold uppercase tracking-wider text-amber-400 block">Opção ${slot}</span>
           <h6 class="font-bold text-xs text-stone-100 truncate">${escapeHtml(book.title || 'Sem título')}</h6>
