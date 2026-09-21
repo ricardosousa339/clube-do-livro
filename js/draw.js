@@ -345,26 +345,28 @@ function renderWinnerCard(winnerData) {
       <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6">
         <img src="${book.cover || DEFAULT_BOOK_COVER}" alt="${escapeHtml(book.title)}" class="w-36 sm:w-44 aspect-[2/3] object-cover rounded-2xl shadow-xl border border-gold/30 shrink-0 book-cover" loading="lazy" decoding="async" onerror="this.onerror=null; this.src=DEFAULT_BOOK_COVER;">
         
-        <div class="flex-1 text-center sm:text-left space-y-2 w-full">
-          <span class="text-xs font-bold text-burgundy uppercase tracking-wider">Indicado por ${escapeHtml(member)}</span>
-          <h3 class="text-2xl sm:text-3xl font-serif font-bold text-stone-900 leading-tight">${escapeHtml(book.title)}</h3>
-          <p class="text-sm font-medium text-stone-600">${escapeHtml(book.author)}</p>
-          ${book.description ? `<p class="text-xs text-stone-500 line-clamp-3 pt-1 italic font-serif">"${escapeHtml(book.description)}"</p>` : ''}
+        <div class="flex-1 text-center sm:text-left space-y-2.5 w-full">
+          <span class="text-sm font-bold text-burgundy uppercase tracking-wider flex items-center justify-center sm:justify-start gap-1.5">
+            <i class="ph ph-sparkle text-gold text-base"></i> Indicado por ${escapeHtml(member)}
+          </span>
+          <h3 class="text-3xl sm:text-4xl font-serif font-bold text-stone-900 leading-tight">${escapeHtml(book.title)}</h3>
+          <p class="text-base sm:text-lg font-medium text-stone-700">${escapeHtml(book.author)}</p>
+          ${book.description ? `<p class="text-sm text-stone-600 line-clamp-3 pt-1 italic font-serif">"${escapeHtml(book.description)}"</p>` : ''}
           
-          <div class="pt-4 flex flex-wrap gap-2 justify-center sm:justify-start">
-            <button onclick="downloadCurrentMonthCard()" class="px-4 py-2.5 rounded-xl bg-stone-900 hover:bg-black text-white font-bold text-xs transition flex items-center gap-2 shadow-sm">
+          <div class="pt-4 flex flex-wrap gap-2.5 justify-center sm:justify-start">
+            <button onclick="downloadCurrentMonthCard()" class="px-4.5 py-2.5 rounded-xl bg-stone-900 hover:bg-black text-white font-bold text-sm transition flex items-center gap-2 shadow-sm">
               <i class="ph ph-download-simple text-base text-gold"></i><span>Baixar Card</span>
             </button>
-            <button onclick="shareMonthCardWhatsApp()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition flex items-center gap-2 shadow-sm shadow-emerald-700/20">
+            <button onclick="shareMonthCardWhatsApp()" class="px-4.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm transition flex items-center gap-2 shadow-sm shadow-emerald-700/20">
               <i class="ph ph-whatsapp-logo text-base"></i><span>Enviar para o WhatsApp</span>
             </button>
-            <button onclick="copySummaryToClipboard()" class="px-4 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs transition flex items-center gap-2">
+            <button onclick="copySummaryToClipboard()" class="px-4.5 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold text-sm transition flex items-center gap-2">
               <i class="ph ph-copy text-base"></i><span>Copiar Texto</span>
             </button>
-            <button onclick="openResetCycleModal()" class="px-4 py-2.5 rounded-xl bg-burgundy hover:bg-burgundyLight text-white font-bold text-xs transition flex items-center gap-1.5 shadow-sm">
-              <i class="ph ph-archive-box"></i><span>Arquivar & Iniciar Novo Mês</span>
+            <button onclick="openResetCycleModal()" class="px-4.5 py-2.5 rounded-xl bg-burgundy hover:bg-burgundyLight text-white font-bold text-sm transition flex items-center gap-1.5 shadow-sm">
+              <i class="ph ph-archive-box text-base"></i><span>Arquivar & Iniciar Novo Mês</span>
             </button>
-            <button onclick="initiateDraw()" class="px-4 py-2.5 rounded-xl bg-white hover:bg-stone-50 text-stone-700 border border-stone-300 font-semibold text-xs transition">
+            <button onclick="initiateDraw()" class="px-4 py-2.5 rounded-xl bg-white hover:bg-stone-50 text-stone-700 border border-stone-300 font-semibold text-sm transition">
               Sortear Novamente
             </button>
           </div>

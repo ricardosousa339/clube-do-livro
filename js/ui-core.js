@@ -277,36 +277,36 @@ function renderHomeScreen() {
 
           <!-- Informações -->
           <div class="flex-1 text-center md:text-left space-y-3 min-w-0">
-            <div class="space-y-1">
-              <span class="text-xs font-bold text-burgundy uppercase tracking-wider flex items-center justify-center md:justify-start gap-1">
-                <i class="ph ph-sparkle text-gold"></i> Indicado por ${escapeHtml(memberName || 'Integrante')}
+            <div class="space-y-1.5">
+              <span class="text-sm font-bold text-burgundy uppercase tracking-wider flex items-center justify-center md:justify-start gap-1.5">
+                <i class="ph ph-sparkle text-gold text-base"></i> Indicado por ${escapeHtml(memberName || 'Integrante')}
               </span>
-              <h2 class="text-2xl sm:text-4xl font-serif font-bold text-stone-900 leading-tight">${escapeHtml(book.title || 'Sem título')}</h2>
-              <p class="text-base sm:text-lg font-medium text-stone-600">${escapeHtml(book.author || 'Autor não informado')}</p>
+              <h2 class="text-3xl sm:text-4xl font-serif font-bold text-stone-900 leading-tight">${escapeHtml(book.title || 'Sem título')}</h2>
+              <p class="text-lg sm:text-xl font-medium text-stone-700">${escapeHtml(book.author || 'Autor não informado')}</p>
             </div>
 
-            ${book.description ? `<p class="text-xs sm:text-sm text-stone-600 italic font-serif line-clamp-3 bg-white/60 p-3 rounded-xl border border-stone-200/50">"${escapeHtml(book.description)}"</p>` : ''}
+            ${book.description ? `<p class="text-sm sm:text-base text-stone-600 italic font-serif line-clamp-3 bg-white/60 p-3.5 rounded-xl border border-stone-200/50">"${escapeHtml(book.description)}"</p>` : ''}
 
-            <div class="pt-2 flex flex-wrap items-center justify-center md:justify-start gap-2 text-xs text-stone-500">
+            <div class="pt-2 flex flex-wrap items-center justify-center md:justify-start gap-2.5 text-sm text-stone-600 font-medium">
               ${drawDate ? `
-                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-stone-100 text-stone-700 font-medium">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-stone-100 text-stone-800">
                   <i class="ph ph-calendar-blank text-burgundy"></i> Sorteado em ${escapeHtml(drawDate)}
                 </span>` : ''}
-              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-stone-100 text-stone-700 font-medium">
+              <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-stone-100 text-stone-800">
                 <i class="ph ph-users text-burgundy"></i> ${state.members.length} Leitores
               </span>
             </div>
 
             <!-- Botões de Ação Separados -->
-            <div class="pt-4 flex flex-wrap items-center justify-center md:justify-start gap-2.5">
-              <button onclick="downloadCurrentMonthCard()" class="px-4 py-2.5 rounded-xl bg-stone-900 hover:bg-black text-white font-bold text-xs transition flex items-center gap-2 shadow-sm">
-                <i class="ph ph-download-simple text-sm text-gold"></i><span>Baixar Card</span>
+            <div class="pt-4 flex flex-wrap items-center justify-center md:justify-start gap-3">
+              <button onclick="downloadCurrentMonthCard()" class="px-4.5 py-2.5 rounded-xl bg-stone-900 hover:bg-black text-white font-bold text-sm transition flex items-center gap-2 shadow-sm">
+                <i class="ph ph-download-simple text-base text-gold"></i><span>Baixar Card</span>
               </button>
-              <button onclick="shareMonthCardWhatsApp()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition flex items-center gap-2 shadow-sm shadow-emerald-700/20">
-                <i class="ph ph-whatsapp-logo text-sm"></i><span>Enviar para o WhatsApp</span>
+              <button onclick="shareMonthCardWhatsApp()" class="px-4.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm transition flex items-center gap-2 shadow-sm shadow-emerald-700/20">
+                <i class="ph ph-whatsapp-logo text-base"></i><span>Enviar para o WhatsApp</span>
               </button>
-              <button onclick="openHistoryModal()" class="px-4 py-2.5 rounded-xl border border-stone-300 hover:border-stone-400 bg-white hover:bg-stone-50 text-stone-700 font-bold text-xs transition flex items-center gap-2 shadow-xs">
-                <i class="ph ph-clock-counter-clockwise text-sm text-burgundy"></i><span>Ver Histórico</span>
+              <button onclick="openHistoryModal()" class="px-4.5 py-2.5 rounded-xl border border-stone-300 hover:border-stone-400 bg-white hover:bg-stone-50 text-stone-700 font-bold text-sm transition flex items-center gap-2 shadow-xs">
+                <i class="ph ph-clock-counter-clockwise text-base text-burgundy"></i><span>Ver Histórico</span>
               </button>
             </div>
           </div>

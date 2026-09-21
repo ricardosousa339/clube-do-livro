@@ -225,6 +225,108 @@ async function generateYearMosaic() {
 }
 
 // ==========================================
+// EXTRATOR DE CORES DA CAPA (PALETA DINÂMICA)
+// ==========================================
+function extractPaletteFromImage(img) {
+  const fallback = {
+    bgDark: '#1A1412',
+    bgMid: '#2D211C',
+    bgBottom: '#120E0D',
+    accent: '#D4A359',
+    accentLight: '#F3E5AB',
+    border: 'rgba(212, 163, 89, 0.55)',
+    glow: 'rgba(212, 163, 89, 0.38)',
+    cardBg: 'rgba(212, 163, 89, 0.10)',
+    isFallback: true
+  };
+
+  if (!img) return fallback;
+
+  try {
+    const c = document.createElement('canvas');
+    c.width = 48;
+    c.height = 48;
+    const ctx = c.getContext('2d', { willReadFrequently: true });
+    ctx.drawImage(img, 0, 0, 48, 48);
+    const data = ctx.getImageData(0, 0, 48, 48).data;
+
+    let vibrantColors = [];
+    let rSum = 0, gSum = 0, bSum = 0, total = 0;
+
+    for (let i = 0; i < data.length; i += 4) {
+      const a = data[i + 3];
+      if (a < 128) continue;
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+
+      rSum += r;
+      gSum += g;
+      bSum += b;
+      total++;
+
+      // Converte RGB para HSL
+      const max = Math.max(r, g, b) / 255;
+      const min = Math.min(r, g, b) / 255;
+      const d = max - min;
+      const l = (max + min) / 2;
+      let s = 0;
+      if (d !== 0) {
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      }
+
+      // Filtra brancos puros, pretos profundos e tons cinzas desbotados
+      if (s > 0.20 && l > 0.18 && l < 0.88) {
+        vibrantColors.push({ r, g, b, s, l });
+      }
+    }
+
+    if (total === 0) return fallback;
+
+    const avgR = Math.round(rSum / total);
+    const avgG = Math.round(gSum / total);
+    const avgB = Math.round(bSum / total);
+
+    // Ordena as cores vibrantes pela saturação
+    vibrantColors.sort((a, b) => b.s - a.s);
+
+    let chosen = vibrantColors[0];
+    let accentR = chosen ? chosen.r : 212;
+    let accentG = chosen ? chosen.g : 163;
+    let accentB = chosen ? chosen.b : 89;
+
+    // Se o acento for escuro, eleva o brilho para destacar sobre o fundo
+    const maxVal = Math.max(accentR, accentG, accentB);
+    if (maxVal < 160) {
+      const scale = 190 / Math.max(1, maxVal);
+      accentR = Math.min(255, Math.round(accentR * scale));
+      accentG = Math.min(255, Math.round(accentG * scale));
+      accentB = Math.min(255, Math.round(accentB * scale));
+    }
+
+    // Fundo profundo e atmosférico baseado no matiz da capa
+    const bgDark = `rgb(${Math.round(avgR * 0.18 + 14)}, ${Math.round(avgG * 0.18 + 12)}, ${Math.round(avgB * 0.18 + 12)})`;
+    const bgMid = `rgb(${Math.round(avgR * 0.35 + 24)}, ${Math.round(avgG * 0.35 + 20)}, ${Math.round(avgB * 0.35 + 20)})`;
+    const bgBottom = `rgb(${Math.round(avgR * 0.10 + 8)}, ${Math.round(avgG * 0.10 + 7)}, ${Math.round(avgB * 0.10 + 7)})`;
+
+    return {
+      bgDark,
+      bgMid,
+      bgBottom,
+      accent: `rgb(${accentR}, ${accentG}, ${accentB})`,
+      accentLight: `rgba(${accentR}, ${accentG}, ${accentB}, 0.85)`,
+      border: `rgba(${accentR}, ${accentG}, ${accentB}, 0.50)`,
+      glow: `rgba(${accentR}, ${accentG}, ${accentB}, 0.38)`,
+      cardBg: `rgba(${accentR}, ${accentG}, ${accentB}, 0.10)`,
+      isFallback: false
+    };
+  } catch (err) {
+    console.warn('Erro ao extrair cores da capa (usando paleta padrão):', err);
+    return fallback;
+  }
+}
+
+// ==========================================
 // CARD DO MÊS ATUAL (CANVAS BUILDER)
 // ==========================================
 async function renderCurrentMonthCardCanvas() {
@@ -234,114 +336,201 @@ async function renderCurrentMonthCardCanvas() {
     return null;
   }
 
+  const book = winner.book;
+  const memberName = winner.member || (winner.book && winner.book.member) || 'Integrante';
   const canvasW = 1080;
-  const canvasH = 1350; // Formato story 4:5
+  const canvasH = 1350; // Formato story / post 4:5
 
   const canvas = document.createElement('canvas');
   canvas.width = canvasW;
   canvas.height = canvasH;
   const ctx = canvas.getContext('2d');
 
-  // Fundo gradiente elegante
-  const grad = ctx.createLinearGradient(0, 0, canvasW, canvasH);
-  grad.addColorStop(0, '#1A1412');
-  grad.addColorStop(0.5, '#2D211C');
-  grad.addColorStop(1, '#1A1412');
+  // Carrega imagem da capa
+  const coverImg = await loadImageForCanvas(book.cover);
+
+  // Extrai paleta de cores dinâmica diretamente da capa
+  const palette = extractPaletteFromImage(coverImg);
+
+  // Fundo gradiente cinematográfico baseado nas cores da capa
+  const grad = ctx.createLinearGradient(0, 0, 0, canvasH);
+  grad.addColorStop(0, palette.bgDark);
+  grad.addColorStop(0.28, palette.bgMid);
+  grad.addColorStop(0.60, palette.bgMid);
+  grad.addColorStop(1, palette.bgBottom);
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, canvasW, canvasH);
 
-  // Decorações douradas sutis
-  ctx.fillStyle = 'rgba(212, 163, 89, 0.05)';
-  ctx.beginPath();
-  ctx.arc(900, 200, 350, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.beginPath();
-  ctx.arc(180, 1100, 300, 0, Math.PI * 2);
-  ctx.fill();
+  // Efeito de Backlight / Halo luminoso atrás do livro (3D ambient glow)
+  const glowGrad = ctx.createRadialGradient(canvasW / 2, 480, 80, canvasW / 2, 480, 520);
+  glowGrad.addColorStop(0, palette.glow);
+  glowGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = glowGrad;
+  ctx.fillRect(0, 0, canvasW, canvasH);
 
-  // Header Editorial Limpo (apenas 2 linhas harmônicas)
+  // Ambient glow suave na base do card para calor visual
+  const bottomGlow = ctx.createRadialGradient(canvasW / 2, 1180, 40, canvasW / 2, 1180, 450);
+  bottomGlow.addColorStop(0, palette.glow.replace(/[\d\.]+\)$/, '0.22)'));
+  bottomGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = bottomGlow;
+  ctx.fillRect(0, 0, canvasW, canvasH);
+
+  // Header Editorial Limpo e Equilibrado
   const clubName = window.clubState.clubName || 'Clube do Livro';
   const monthLabel = (window.clubState.history && window.clubState.history[0]?.monthLabel) || new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(new Date());
 
-  ctx.fillStyle = '#D4A359';
+  // Badge superior com a cor de destaque da capa
+  const badgeText = `📚 ${clubName.toUpperCase()}`;
   ctx.font = 'bold 16px "Plus Jakarta Sans", sans-serif';
+  const textMetrics = ctx.measureText(badgeText);
+  const badgeW = Math.max(300, textMetrics.width + 64);
+  const badgeH = 42;
+  const badgeX = (canvasW - badgeW) / 2;
+  const badgeY = 50;
+
+  roundRect(ctx, badgeX, badgeY, badgeW, badgeH, 21);
+  ctx.fillStyle = palette.cardBg;
+  ctx.fill();
+  roundRect(ctx, badgeX, badgeY, badgeW, badgeH, 21);
+  ctx.strokeStyle = palette.border;
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  ctx.fillStyle = palette.accent;
   ctx.textAlign = 'center';
-  ctx.fillText(clubName.toUpperCase(), canvasW / 2, 95);
+  ctx.fillText(badgeText, canvasW / 2, badgeY + 27);
 
+  // Título do Mês
   ctx.fillStyle = '#FBFAF8';
-  ctx.font = 'bold 30px "Merriweather", Georgia, serif';
-  ctx.fillText(`Livro do Mês • ${monthLabel}`, canvasW / 2, 135);
+  ctx.font = 'bold 34px "Merriweather", Georgia, serif';
+  ctx.fillText(`Livro Escolhido • ${monthLabel}`, canvasW / 2, 130);
 
-  // Capa do livro na proporção padrão 2:3 (340 x 510 px)
-  const coverImg = await loadImageForCanvas(winner.book.cover);
-  const bookW = 340;
-  const bookH = 510;
+  // Capa do livro na proporção padrão 2:3 (390 x 585 px)
+  const bookW = 390;
+  const bookH = 585;
   const bookX = (canvasW - bookW) / 2;
-  const bookY = 185;
+  const bookY = 160;
 
-  // Sombra do livro
+  // Sombra profunda multicamada
   ctx.save();
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.65)';
-  ctx.shadowBlur = 45;
-  ctx.shadowOffsetY = 18;
-  roundRect(ctx, bookX, bookY, bookW, bookH, 16);
-  ctx.fillStyle = '#332A24';
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+  ctx.shadowBlur = 55;
+  ctx.shadowOffsetY = 24;
+  roundRect(ctx, bookX, bookY, bookW, bookH, 20);
+  ctx.fillStyle = '#1e1814';
   ctx.fill();
   ctx.restore();
 
-  // Capa com clip arredondado e proporção preservada
+  // Capa recortada com clip arredondado
   ctx.save();
-  roundRect(ctx, bookX, bookY, bookW, bookH, 16);
+  roundRect(ctx, bookX, bookY, bookW, bookH, 20);
   ctx.clip();
   drawImageProp(ctx, coverImg, bookX, bookY, bookW, bookH);
   ctx.restore();
 
-  // Borda dourada
-  roundRect(ctx, bookX, bookY, bookW, bookH, 16);
-  ctx.strokeStyle = 'rgba(212, 163, 89, 0.45)';
-  ctx.lineWidth = 2;
+  // Moldura refinada com a cor de acento extraída da capa
+  roundRect(ctx, bookX, bookY, bookW, bookH, 20);
+  ctx.strokeStyle = palette.border;
+  ctx.lineWidth = 2.5;
   ctx.stroke();
 
-  // Título do livro
-  const titleY = bookY + bookH + 65;
+  // --- SEÇÃO INFERIOR DO CARD ---
+  const hasDesc = book.description && book.description.trim().length > 3;
+  const currentY = bookY + bookH + (hasDesc ? 44 : 54);
+
+  // Título da Obra (texto maior e imponente: 46px)
   ctx.fillStyle = '#FBFAF8';
-  ctx.font = 'bold 40px "Merriweather", Georgia, serif';
+  ctx.font = 'bold 46px "Merriweather", Georgia, serif';
   ctx.textAlign = 'center';
-  const titleLines = wrapText(ctx, winner.book.title, canvasW - 160);
+  const titleLines = wrapText(ctx, book.title || 'Sem Título', canvasW - 140).slice(0, 2);
   titleLines.forEach((line, i) => {
-    ctx.fillText(line, canvasW / 2, titleY + i * 50);
+    ctx.fillText(line, canvasW / 2, currentY + i * 56);
   });
 
-  // Autor
-  const authorY = titleY + titleLines.length * 50 + 18;
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
-  ctx.font = '24px "Plus Jakarta Sans", sans-serif';
-  ctx.fillText(winner.book.author || 'Autor não informado', canvasW / 2, authorY);
+  // Autor (maior: 28px)
+  const authorY = currentY + titleLines.length * 56 + (hasDesc ? 8 : 12);
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.82)';
+  ctx.font = '600 28px "Plus Jakarta Sans", sans-serif';
+  ctx.fillText(book.author || 'Autor não informado', canvasW / 2, authorY);
 
-  // Divider dourado
-  const divY = authorY + 45;
-  ctx.strokeStyle = 'rgba(212, 163, 89, 0.35)';
-  ctx.lineWidth = 1;
+  // Sinopse (apenas se existir no livro)
+  let contentBottomY = authorY;
+  if (hasDesc) {
+    const nextSectionY = authorY + 36;
+    const descText = `"${book.description.replace(/^"|"$/g, '').trim()}"`;
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
+    ctx.font = 'italic 21px "Merriweather", Georgia, serif';
+    const descLines = wrapText(ctx, descText, canvasW - 180).slice(0, 2);
+    descLines.forEach((line, i) => {
+      ctx.fillText(line, canvasW / 2, nextSectionY + i * 32);
+    });
+    contentBottomY = nextSectionY + (descLines.length - 1) * 32;
+  }
+
+  // Ancora os cards de metadados na base do card para preencher perfeitamente o espaço inferior
+  const cardW = 300;
+  const cardH = 98;
+  const gap = 20;
+  const metaItems = [
+    { icon: '👤', label: 'INDICADO POR', value: memberName },
+    { icon: '📅', label: 'DATA DO SORTEIO', value: (window.clubState.history && window.clubState.history[0]?.archivedAt) || new Date().toLocaleDateString('pt-BR') },
+    { icon: '📖', label: 'LEITURA COLETIVA', value: (window.clubState.history && window.clubState.history[0]?.finalists && window.clubState.history[0].finalists.length) ? `Venceu ${window.clubState.history[0].finalists.length} obras` : `${(window.clubState.members || []).length || 2} Integrantes` }
+  ];
+
+  const totalMetaW = metaItems.length * cardW + (metaItems.length - 1) * gap;
+  const startX = (canvasW - totalMetaW) / 2;
+  const metaY = canvasH - 215; // Fixado perfeitamente na zona nobre inferior
+
+  // Divisor decorativo centrado entre o conteúdo superior e os cards
+  const divY = Math.round((contentBottomY + 24 + metaY) / 2);
+  ctx.strokeStyle = palette.border;
+  ctx.lineWidth = 1.2;
   ctx.beginPath();
-  ctx.moveTo(canvasW / 2 - 90, divY);
-  ctx.lineTo(canvasW / 2 + 90, divY);
+  ctx.moveTo(canvasW / 2 - 150, divY);
+  ctx.lineTo(canvasW / 2 + 150, divY);
   ctx.stroke();
 
-  // Indicado por
-  ctx.fillStyle = '#D4A359';
-  ctx.font = 'bold 20px "Plus Jakarta Sans", sans-serif';
-  ctx.fillText(`Indicado por ${winner.member}`, canvasW / 2, divY + 36);
+  ctx.fillStyle = palette.accent;
+  ctx.font = '16px sans-serif';
+  ctx.fillText('✦', canvasW / 2, divY + 6);
 
-  // Data de Sorteio
-  const drawDateStr = (window.clubState.history && window.clubState.history[0]?.archivedAt) || new Date().toLocaleDateString('pt-BR');
+  metaItems.forEach((item, idx) => {
+    const x = startX + idx * (cardW + gap);
+    
+    // Fundo glassmorphism do card de metadados com cor extraída da capa
+    roundRect(ctx, x, metaY, cardW, cardH, 18);
+    ctx.fillStyle = palette.cardBg;
+    ctx.fill();
+
+    roundRect(ctx, x, metaY, cardW, cardH, 18);
+    ctx.strokeStyle = palette.border;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Rótulo com ícone (maior: 13px)
+    ctx.fillStyle = palette.accent;
+    ctx.font = 'bold 13px "Plus Jakarta Sans", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(`${item.icon} ${item.label}`, x + cardW / 2, metaY + 36);
+
+    // Valor em destaque (maior: 22px)
+    ctx.fillStyle = '#FBFAF8';
+    ctx.font = 'bold 22px "Plus Jakarta Sans", sans-serif';
+    let valText = item.value;
+    if (ctx.measureText(valText).width > cardW - 24) {
+      while (ctx.measureText(valText + '...').width > cardW - 24 && valText.length > 3) {
+        valText = valText.slice(0, -1);
+      }
+      valText += '...';
+    }
+    ctx.fillText(valText, x + cardW / 2, metaY + 72);
+  });
+
+  // Rodapé Editorial Elegante (maior: 16px)
   ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
-  ctx.font = '15px "Plus Jakarta Sans", sans-serif';
-  ctx.fillText(`Sorteado em ${drawDateStr}`, canvasW / 2, divY + 66);
-
-  // Footer
-  ctx.fillStyle = 'rgba(212, 163, 89, 0.35)';
-  ctx.font = '13px "Plus Jakarta Sans", sans-serif';
-  ctx.fillText('Clube do Livro', canvasW / 2, canvasH - 35);
+  ctx.font = '500 16px "Plus Jakarta Sans", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(`📚 ${clubName} • Leitura Oficial • Edição de ${monthLabel}`, canvasW / 2, canvasH - 45);
 
   return canvas;
 }
