@@ -88,7 +88,7 @@
   <!-- MAIN APP -->
   <div id="mainApp" class="flex-1 flex flex-col hidden">
     <header class="border-b border-[#E7DFD5] bg-[#FFFFFF]/85 backdrop-blur-md sticky top-0 z-40">
-      <div class="max-w-6xl mx-auto px-3.5 sm:px-6 py-2 sm:py-3 flex items-center justify-between gap-2">
+      <div class="max-w-6xl mx-auto px-3.5 sm:px-6 py-2 sm:py-3 flex items-center justify-between gap-2 relative">
         <div class="flex items-center space-x-2.5 sm:space-x-3 min-w-0">
           <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-burgundy flex items-center justify-center text-gold shadow-sm shrink-0">
             <i class="ph ph-books text-lg sm:text-2xl"></i>
@@ -121,24 +121,12 @@
             <span>Convidar</span>
           </button>
 
-          <div class="relative">
-            <button onclick="toggleMemberDropdown()" class="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 transition text-xs font-semibold shadow-sm">
-              <i class="ph ph-user-circle text-base text-burgundy"></i>
-              <span id="activeMemberLabel" class="flex items-center gap-1.5 font-bold text-stone-800">Identificar-se</span>
-              <i class="ph ph-caret-down text-xs text-stone-400"></i>
-            </button>
-            
-            <div id="memberDropdown" class="hidden absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-xl border border-stone-200 py-2.5 px-2 z-50">
-              <div id="memberDropdownTitle" class="px-2 py-1 text-[11px] font-bold text-stone-400 uppercase tracking-wider">Perfil Vinculado:</div>
-              <div id="memberDropdownList" class="space-y-1.5 max-h-64 overflow-y-auto custom-scrollbar"></div>
-              <div class="pt-2 mt-2 border-t border-stone-100">
-                <button onclick="promptAddNewMember()" class="w-full py-2 px-2.5 rounded-xl text-xs font-bold text-burgundy hover:bg-burgundy/5 flex items-center justify-center gap-1.5 transition">
-                  <i class="ph ph-user-plus text-sm"></i>
-                  <span>+ Adicionar Outro Integrante</span>
-                </button>
-              </div>
-            </div>
-          </div>
+          <!-- Perfil no Desktop -->
+          <button onclick="toggleMemberDropdown(event)" id="activeMemberBtnDesktop" class="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 transition text-xs font-semibold shadow-sm">
+            <i class="ph ph-user-circle text-base text-burgundy"></i>
+            <span id="activeMemberLabel" class="flex items-center gap-1.5 font-bold text-stone-800">Identificar-se</span>
+            <i class="ph ph-caret-down text-xs text-stone-400"></i>
+          </button>
 
           <button onclick="handleAdminTrigger()" title="Painel de Administração" class="p-2 text-stone-400 hover:text-amber-600 rounded-xl hover:bg-amber-50 transition">
             <i class="ph ph-shield-star text-lg"></i>
@@ -152,7 +140,7 @@
         <!-- AÇÕES DO HEADER NO CELULAR (< sm) -->
         <div class="flex sm:hidden items-center gap-1.5">
           <!-- Perfil no Mobile -->
-          <button onclick="toggleMemberDropdown()" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-stone-200 bg-white text-xs font-bold text-stone-800 shadow-xs max-w-[130px] truncate">
+          <button onclick="toggleMemberDropdown(event)" id="activeMemberBtnMobile" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-stone-200 bg-white text-xs font-bold text-stone-800 shadow-xs max-w-[130px] truncate">
             <i class="ph ph-user-circle text-base text-burgundy shrink-0"></i>
             <span id="activeMemberLabelMobile" class="truncate">Identificar</span>
           </button>
@@ -186,7 +174,26 @@
                   <i class="ph ph-pencil-simple text-base text-stone-500"></i> Renomear Clube
                 </button>
               </div>
+              <!-- Opção de Sair do Perfil no Mobile -->
+              <div id="mobileLogoutSection" class="py-1 hidden">
+                <button onclick="closeMobileHeaderMenu(); openLogoutModal();" class="w-full px-3 py-2 text-left text-xs font-bold text-rose-600 hover:bg-rose-50 flex items-center gap-2 transition">
+                  <i class="ph ph-sign-out text-base text-rose-600"></i>
+                  <span id="mobileLogoutLabel">Sair do Perfil</span>
+                </button>
+              </div>
             </div>
+          </div>
+        </div>
+
+        <!-- DROPDOWN DE INTEGRANTES / PERFIL (Mobile & Desktop) -->
+        <div id="memberDropdown" class="hidden absolute right-3.5 sm:right-24 top-full mt-1.5 w-72 max-w-[calc(100vw-28px)] bg-white rounded-2xl shadow-2xl border border-stone-200 py-2.5 px-2 z-50">
+          <div id="memberDropdownTitle" class="px-2 py-1 text-[11px] font-bold text-stone-400 uppercase tracking-wider">Perfil Vinculado:</div>
+          <div id="memberDropdownList" class="space-y-1.5 max-h-64 overflow-y-auto custom-scrollbar"></div>
+          <div class="pt-2 mt-2 border-t border-stone-100">
+            <button onclick="promptAddNewMember()" class="w-full py-2 px-2.5 rounded-xl text-xs font-bold text-burgundy hover:bg-burgundy/5 flex items-center justify-center gap-1.5 transition">
+              <i class="ph ph-user-plus text-sm"></i>
+              <span>+ Adicionar Outro Integrante</span>
+            </button>
           </div>
         </div>
       </div>
@@ -432,6 +439,10 @@
               <label class="text-[10px] font-bold uppercase text-stone-500 mb-1 block">Autor(a)</label>
               <input id="editBookAuthor" type="text" class="w-full px-3 py-2 rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-burgundy/40 text-sm">
             </div>
+            <div>
+              <label class="text-[10px] font-bold uppercase text-stone-500 mb-1 block">Link de Download (opcional)</label>
+              <input id="editBookDownloadUrl" type="url" placeholder="https://drive.google.com/... ou link direto do PDF/ePub" class="w-full px-3 py-2 rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-burgundy/40 text-xs">
+            </div>
           </div>
         </div>
 
@@ -571,6 +582,10 @@
           <div>
             <label class="text-[10px] font-bold uppercase text-stone-500 mb-1 block">Mês / Ano da Leitura</label>
             <input id="editHistoryMonthLabel" type="text" placeholder="Ex: setembro de 2026" class="w-full px-3 py-2 rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-burgundy/40 text-xs">
+          </div>
+          <div>
+            <label class="text-[10px] font-bold uppercase text-stone-500 mb-1 block">Link de Download do Livro (opcional)</label>
+            <input id="editHistoryDownloadUrl" type="url" placeholder="https://drive.google.com/... ou link direto do PDF/ePub" class="w-full px-3 py-2 rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-burgundy/40 text-xs">
           </div>
         </div>
       </div>
@@ -728,7 +743,10 @@
 
       <!-- Navigation Tabs -->
       <div class="px-5 py-2 bg-stone-900/90 border-b border-stone-800 flex items-center gap-1 sm:gap-2 overflow-x-auto custom-scrollbar-dark shrink-0">
-        <button onclick="switchAdminTab('members')" id="adminTabBtn-members" class="admin-tab-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap bg-amber-500/20 text-amber-300 border border-amber-500/40">
+        <button onclick="switchAdminTab('current')" id="adminTabBtn-current" class="admin-tab-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap bg-amber-500/20 text-amber-300 border border-amber-500/40">
+          <i class="ph ph-book-open"></i><span>Livro Atual</span>
+        </button>
+        <button onclick="switchAdminTab('members')" id="adminTabBtn-members" class="admin-tab-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap text-stone-400 hover:text-stone-200 hover:bg-stone-800/60">
           <i class="ph ph-users"></i><span>Membros</span>
         </button>
         <button onclick="switchAdminTab('nominations')" id="adminTabBtn-nominations" class="admin-tab-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap text-stone-400 hover:text-stone-200 hover:bg-stone-800/60">

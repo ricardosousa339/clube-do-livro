@@ -70,9 +70,13 @@ function handleArchiveAndStartNewMonth() {
     window.clubState.history.unshift({
       id: 'hist_' + Date.now(),
       monthLabel: new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(new Date()),
-      archivedAt: new Date().toLocaleDateString('pt-BR'),
-      winner: { title: winner.book.title, author: winner.book.author, cover: winner.book.cover, member: winner.member },
-      finalists: finalists,
+      winner: { 
+        title: winner.book.title, 
+        author: winner.book.author, 
+        cover: winner.book.cover, 
+        member: winner.member,
+        downloadUrl: winner.book.downloadUrl || ''
+      },
       vetoData: vetoData,
       eliminationData: eliminationData
     });
@@ -218,6 +222,11 @@ function renderHistoryList() {
         <div class="flex flex-col items-end shrink-0 gap-2">
           <div class="text-right"><span class="text-[10px] text-stone-400 block">${item.archivedAt ? `Sorteado em: ${item.archivedAt}` : ''}</span>${item.finalists && item.finalists.length ? `<span class="text-[10px] text-stone-500 font-medium">Disputou com ${item.finalists.length - 1} finalistas</span>` : ''}</div>
           <div class="flex items-center gap-1.5">
+            ${w.downloadUrl ? `
+              <a href="${escapeHtml(w.downloadUrl)}" target="_blank" rel="noopener noreferrer" title="Baixar este livro" class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 transition text-[10px] font-bold">
+                <i class="ph ph-download-simple text-xs"></i><span>Baixar</span>
+              </a>
+            ` : ''}
             <button onclick="openEditHistoryModal('${item.id}')" title="Editar dados da leitura" class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 transition text-[10px] font-bold"><i class="ph ph-pencil-simple text-xs"></i><span>Editar</span></button>
             <button onclick="deleteHistoryItem('${item.id}')" title="Excluir registro" class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition text-[10px] font-bold"><i class="ph ph-trash text-xs"></i><span>Excluir</span></button>
           </div>
@@ -454,6 +463,8 @@ function openEditHistoryModal(id) {
   document.getElementById('editHistoryAuthor').value = item.winner.author || '';
   document.getElementById('editHistoryCoverUrl').value = item.winner.cover || '';
   document.getElementById('editHistoryMonthLabel').value = item.monthLabel || item.archivedAt || '';
+  const downloadInput = document.getElementById('editHistoryDownloadUrl');
+  if (downloadInput) downloadInput.value = item.winner.downloadUrl || '';
 
   const preview = document.getElementById('editHistoryCoverPreview');
   if (preview) {
@@ -499,12 +510,17 @@ async function saveHistoryItemEdit() {
   const author = (document.getElementById('editHistoryAuthor')?.value || '').trim();
   const coverUrl = (document.getElementById('editHistoryCoverUrl')?.value || '').trim();
   const monthLabel = (document.getElementById('editHistoryMonthLabel')?.value || '').trim();
+  let downloadUrl = (document.getElementById('editHistoryDownloadUrl')?.value || '').trim();
+  if (downloadUrl && !/^https?:\/\//i.test(downloadUrl)) {
+    downloadUrl = 'https://' + downloadUrl;
+  }
 
   if (!title) return showToast('Informe ao menos o título do livro.', 'warning');
 
   item.winner.title = title;
   item.winner.author = author || 'Autor não informado';
   item.winner.cover = coverUrl || item.winner.cover || DEFAULT_BOOK_COVER;
+  item.winner.downloadUrl = downloadUrl;
   if (monthLabel) item.monthLabel = monthLabel;
 
   invalidateRenderCache();

@@ -4,7 +4,7 @@
 // ==========================================
 
 window._isAdminAuthenticated = false;
-let _currentAdminTab = 'members';
+let _currentAdminTab = 'current';
 let _badgeClickCount = 0;
 let _badgeClickTimer = null;
 let _adminAuthMode = 'verify'; // 'create' | 'verify' | 'change'
@@ -251,7 +251,7 @@ function openAdminModal() {
   if (clubNameDisplay) clubNameDisplay.innerText = window.clubState?.clubName || 'Clube do Livro';
 
   modal.classList.remove('hidden');
-  switchAdminTab(_currentAdminTab || 'members');
+  switchAdminTab(_currentAdminTab || 'current');
 }
 
 function closeAdminModal() {
@@ -261,7 +261,7 @@ function closeAdminModal() {
 
 function switchAdminTab(tabName) {
   _currentAdminTab = tabName;
-  const tabs = ['members', 'nominations', 'votes', 'backup', 'presence', 'danger'];
+  const tabs = ['current', 'members', 'nominations', 'votes', 'backup', 'presence', 'danger'];
 
   tabs.forEach(t => {
     const btn = document.getElementById(`adminTabBtn-${t}`);
@@ -289,6 +289,9 @@ function renderAdminCurrentTab() {
   if (!container) return;
 
   switch (_currentAdminTab) {
+    case 'current':
+      renderAdminCurrentBookTab(container);
+      break;
     case 'members':
       renderAdminMembersTab(container);
       break;
@@ -308,7 +311,7 @@ function renderAdminCurrentTab() {
       renderAdminDangerTab(container);
       break;
     default:
-      renderAdminMembersTab(container);
+      renderAdminCurrentBookTab(container);
   }
 }
 
@@ -319,6 +322,241 @@ window.refreshAdminUIIfOpen = function() {
     renderAdminCurrentTab();
   }
 };
+
+// ==========================================
+// TAB: GERENCIAMENTO DO LIVRO ATUAL & DOWNLOAD
+// ==========================================
+function renderAdminCurrentBookTab(container) {
+  const state = window.clubState;
+  const currentWinner = state?.winner;
+  const latestHistory = state?.history && state.history.length > 0 ? state.history[0] : null;
+
+  let currentBook = null;
+  let bookSource = null; // 'winner' | 'history'
+  let memberName = '';
+  let dateOrMonth = '';
+
+  if (currentWinner && currentWinner.book) {
+    currentBook = currentWinner.book;
+    bookSource = 'winner';
+    memberName = currentWinner.member;
+    dateOrMonth = currentWinner.drawnAt ? new Date(currentWinner.drawnAt).toLocaleDateString('pt-BR') : 'Rodada Atual';
+  } else if (latestHistory && latestHistory.winner) {
+    currentBook = latestHistory.winner;
+    bookSource = 'history';
+    memberName = latestHistory.winner.member;
+    dateOrMonth = latestHistory.monthLabel || latestHistory.archivedAt || 'Leitura Vigente';
+  }
+
+  let html = `
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-stone-800">
+      <div>
+        <h4 class="text-sm font-bold text-stone-200 flex items-center gap-2">
+          <i class="ph ph-book-open text-amber-400 text-base"></i>
+          <span>Gerenciar Leitura Atual & Link de Download</span>
+        </h4>
+        <p class="text-xs text-stone-400 mt-0.5">Adicione o link do livro (PDF, ePub, Drive) para que todos possam baixar na tela inicial.</p>
+      </div>
+    </div>
+  `;
+
+  if (!currentBook) {
+    html += `
+      <div class="text-center py-12 text-stone-500 bg-stone-950/40 rounded-2xl border border-stone-800/80 space-y-2">
+        <i class="ph ph-books text-4xl text-stone-600 block mx-auto"></i>
+        <p class="text-sm font-bold text-stone-300">Nenhum livro sorteado no momento</p>
+        <p class="text-xs text-stone-500 max-w-sm mx-auto">Assim que um livro for sorteado ou registrado, ele aparecerá aqui para você configurar o link de download.</p>
+      </div>
+    `;
+  } else {
+    const coverUrl = currentBook.cover || (typeof DEFAULT_BOOK_COVER !== 'undefined' ? DEFAULT_BOOK_COVER : '');
+    const hasDownload = !!(currentBook.downloadUrl && currentBook.downloadUrl.trim());
+
+    html += `
+      <div class="space-y-6">
+        <!-- CARD DO LIVRO ATUAL -->
+        <div class="p-5 rounded-2xl bg-stone-950/60 border border-stone-800">
+          <div class="flex flex-col sm:flex-row gap-5 items-start sm:items-center justify-between mb-5 pb-5 border-b border-stone-800/80">
+            <div class="flex items-center gap-4 min-w-0">
+              <img src="${escapeHtml(coverUrl)}" alt="Capa" class="w-16 sm:w-20 aspect-[2/3] object-cover rounded-xl bg-stone-900 border border-stone-700 shadow-md shrink-0 book-cover" onerror="this.onerror=null; this.src=DEFAULT_BOOK_COVER;">
+              <div class="min-w-0 space-y-1">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                    ${bookSource === 'winner' ? 'Sorteado (Em Andamento)' : 'Leitura Vigente'}
+                  </span>
+                  ${dateOrMonth ? `<span class="text-xs text-stone-400 font-medium">• ${escapeHtml(dateOrMonth)}</span>` : ''}
+                </div>
+                <h3 class="text-lg font-serif font-bold text-stone-100 truncate">${escapeHtml(currentBook.title || 'Sem título')}</h3>
+                <p class="text-xs text-stone-400 truncate">${escapeHtml(currentBook.author || 'Autor não informado')}</p>
+                <p class="text-[11px] text-stone-500">Indicado por: <span class="text-stone-300 font-semibold">${escapeHtml(memberName || 'Membro')}</span></p>
+              </div>
+            </div>
+
+            <div class="shrink-0">
+              ${hasDownload ? `
+                <div class="px-3 py-1.5 rounded-xl bg-emerald-950/40 border border-emerald-800/60 text-emerald-400 text-xs font-bold flex items-center gap-1.5">
+                  <i class="ph ph-check-circle text-base"></i>
+                  <span>Link de Download Ativo</span>
+                </div>
+              ` : `
+                <div class="px-3 py-1.5 rounded-xl bg-amber-950/40 border border-amber-800/60 text-amber-400 text-xs font-bold flex items-center gap-1.5">
+                  <i class="ph ph-warning-circle text-base"></i>
+                  <span>Sem Link de Download</span>
+                </div>
+              `}
+            </div>
+          </div>
+
+          <!-- FORMULÁRIO DO LINK DE DOWNLOAD -->
+          <div class="space-y-3">
+            <div>
+              <label class="text-xs font-bold text-stone-300 uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
+                <i class="ph ph-link text-amber-400 text-sm"></i>
+                <span>Link para Download do Livro</span>
+              </label>
+              <div class="relative">
+                <input id="adminBookDownloadUrl" type="url" value="${escapeHtml(currentBook.downloadUrl || '')}" placeholder="https://drive.google.com/... ou link direto do arquivo (PDF, ePub)" class="w-full px-4 py-3 rounded-xl bg-stone-900 border border-stone-700 text-stone-100 text-xs font-mono focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition">
+              </div>
+              <p class="text-[11px] text-stone-400 mt-1.5 leading-relaxed">
+                Insira o link onde o arquivo do livro está hospedado (Google Drive, Dropbox, Mega, OneDrive ou link direto de download). 
+                Quando salvo, o botão <strong>"Baixar Livro"</strong> aparecerá automaticamente com destaque na página inicial (Home) para todos os integrantes.
+              </p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2 pt-2">
+              <button onclick="adminSaveCurrentBookDownloadUrl()" class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs flex items-center gap-2 transition shadow-md shadow-amber-500/20">
+                <i class="ph ph-floppy-disk text-base"></i>
+                <span>Salvar Link de Download</span>
+              </button>
+
+              ${hasDownload ? `
+                <a href="${escapeHtml(currentBook.downloadUrl)}" target="_blank" rel="noopener noreferrer" class="px-4 py-2.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 font-bold text-xs flex items-center gap-1.5 transition">
+                  <i class="ph ph-arrow-square-out text-sm text-amber-400"></i>
+                  <span>Testar Link</span>
+                </a>
+                <button onclick="adminRemoveCurrentBookDownloadUrl()" class="px-4 py-2.5 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 border border-rose-800/60 font-bold text-xs flex items-center gap-1.5 transition">
+                  <i class="ph ph-trash text-sm"></i>
+                  <span>Remover Link</span>
+                </button>
+              ` : ''}
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // HISTÓRICO DE LEITURAS ANTERIORES
+  const history = state?.history || [];
+  if (history.length > 0) {
+    html += `
+      <div class="pt-6 border-t border-stone-800 space-y-3">
+        <div class="flex items-center justify-between">
+          <h5 class="text-xs font-bold text-stone-300 uppercase tracking-wider flex items-center gap-2">
+            <i class="ph ph-clock-counter-clockwise text-stone-400"></i>
+            <span>Links de Leituras do Histórico (${history.length})</span>
+          </h5>
+          <span class="text-[11px] text-stone-500">Você também pode gerenciar o link de cada mês anterior</span>
+        </div>
+
+        <div class="space-y-2">
+          ${history.map(item => {
+            const hWinner = item.winner;
+            const hHasLink = !!(hWinner?.downloadUrl && hWinner.downloadUrl.trim());
+            return `
+              <div class="p-3 rounded-xl bg-stone-950/40 border border-stone-800/80 flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3 min-w-0">
+                  <img src="${hWinner?.cover || DEFAULT_BOOK_COVER}" class="w-9 aspect-[2/3] object-cover rounded-lg bg-stone-900 border border-stone-800 shrink-0 book-cover" onerror="this.onerror=null; this.src=DEFAULT_BOOK_COVER;">
+                  <div class="min-w-0">
+                    <span class="text-[10px] font-bold text-amber-400 block truncate">${escapeHtml(item.monthLabel || item.archivedAt || '')}</span>
+                    <h6 class="font-serif font-bold text-xs text-stone-200 truncate">${escapeHtml(hWinner?.title || 'Sem título')}</h6>
+                    <p class="text-[11px] text-stone-500 truncate">${escapeHtml(hWinner?.author || '')} • Indicado por ${escapeHtml(hWinner?.member || '')}</p>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-2 shrink-0">
+                  ${hHasLink ? `
+                    <a href="${escapeHtml(hWinner.downloadUrl)}" target="_blank" rel="noopener noreferrer" class="p-1.5 rounded-lg bg-emerald-950/40 border border-emerald-800/60 text-emerald-400 text-xs hover:bg-emerald-900/60 transition" title="Abrir link de download">
+                      <i class="ph ph-download-simple text-sm"></i>
+                    </a>
+                  ` : ''}
+                  <button onclick="adminEditHistoryItemDownload('${item.id}')" class="px-2.5 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 text-xs font-semibold flex items-center gap-1 transition">
+                    <i class="ph ph-pencil-simple text-xs text-amber-400"></i>
+                    <span>${hHasLink ? 'Editar Link' : 'Adicionar Link'}</span>
+                  </button>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  container.innerHTML = html;
+}
+
+async function adminSaveCurrentBookDownloadUrl() {
+  const input = document.getElementById('adminBookDownloadUrl');
+  if (!input) return;
+  let url = input.value.trim();
+
+  if (url && !/^https?:\/\//i.test(url)) {
+    url = 'https://' + url;
+    input.value = url;
+  }
+
+  const state = window.clubState;
+  if (!state) return;
+
+  const currentWinner = state.winner;
+  const latestHistory = state.history && state.history.length > 0 ? state.history[0] : null;
+
+  if (currentWinner && currentWinner.book) {
+    currentWinner.book.downloadUrl = url;
+    await persistState('state.winner');
+  } else if (latestHistory && latestHistory.winner) {
+    latestHistory.winner.downloadUrl = url;
+    await persistState('state.history');
+  } else {
+    showToast('Nenhum livro atual encontrado.', 'warning');
+    return;
+  }
+
+  invalidateRenderCache();
+  renderAdminCurrentTab();
+  if (typeof window.renderUI === 'function') window.renderUI();
+
+  if (url) {
+    showToast('Link de download salvo! O botão "Baixar Livro" está ativo na Home.', 'success');
+  } else {
+    showToast('Link de download removido.', 'info');
+  }
+}
+
+async function adminRemoveCurrentBookDownloadUrl() {
+  if (!confirm('Deseja remover o link de download do livro atual?')) return;
+  const input = document.getElementById('adminBookDownloadUrl');
+  if (input) input.value = '';
+  await adminSaveCurrentBookDownloadUrl();
+}
+
+function adminEditHistoryItemDownload(historyId) {
+  const item = window.clubState?.history?.find(h => h.id === historyId);
+  if (!item || !item.winner) return showToast('Registro não encontrado.', 'warning');
+  openPromptModal(`Link de Download (${item.winner.title}):`, item.winner.downloadUrl || '', async (newUrl) => {
+    let url = (newUrl || '').trim();
+    if (url && !/^https?:\/\//i.test(url)) {
+      url = 'https://' + url;
+    }
+    item.winner.downloadUrl = url;
+    invalidateRenderCache();
+    await persistState('state.history');
+    renderAdminCurrentTab();
+    if (typeof window.renderUI === 'function') window.renderUI();
+    showToast(url ? 'Link de download atualizado no histórico!' : 'Link de download removido.', 'success');
+  });
+}
 
 // ==========================================
 // TAB 1: GERENCIAMENTO DE MEMBROS

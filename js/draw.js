@@ -358,20 +358,22 @@ function renderWinnerCard(winnerData) {
           ${book.description ? `<p class="text-sm text-stone-600 line-clamp-3 pt-1 italic font-serif">"${escapeHtml(book.description)}"</p>` : ''}
           
           <div class="pt-4 flex flex-wrap gap-2.5 justify-center sm:justify-start">
-            <button onclick="downloadCurrentMonthCard()" class="px-4.5 py-2.5 rounded-xl bg-stone-900 hover:bg-black text-white font-bold text-sm transition flex items-center gap-2 shadow-sm">
-              <i class="ph ph-download-simple text-base text-gold"></i><span>Baixar Card</span>
+            ${book.downloadUrl ? `
+              <a href="${escapeHtml(book.downloadUrl)}" target="_blank" rel="noopener noreferrer" class="px-4 py-2.5 sm:px-5 sm:py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-xs sm:text-sm transition flex items-center gap-2 shadow-sm shadow-emerald-700/20">
+                <i class="ph ph-download-simple text-base text-emerald-200"></i><span>Baixar Livro</span>
+              </a>
+            ` : ''}
+            <button onclick="openCardPreviewModal()" class="px-4 py-2.5 sm:px-5 sm:py-2.5 rounded-xl bg-stone-900 hover:bg-black active:scale-95 text-white font-bold text-xs sm:text-sm transition flex items-center gap-2 shadow-sm">
+              <i class="ph ph-eye text-base text-gold"></i><span>Visualizar Card</span>
             </button>
-            <button onclick="shareMonthCardWhatsApp()" class="px-4.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm transition flex items-center gap-2 shadow-sm shadow-emerald-700/20">
-              <i class="ph ph-whatsapp-logo text-base"></i><span>Enviar para o WhatsApp</span>
-            </button>
-            <button onclick="copySummaryToClipboard()" class="px-4.5 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold text-sm transition flex items-center gap-2">
+            <button onclick="copySummaryToClipboard()" class="px-4 py-2.5 sm:px-5 sm:py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 active:scale-95 text-stone-800 font-bold text-xs sm:text-sm transition flex items-center gap-2 border border-stone-200/80">
               <i class="ph ph-copy text-base"></i><span>Copiar Texto</span>
             </button>
-            <button onclick="openResetCycleModal()" class="px-4.5 py-2.5 rounded-xl bg-burgundy hover:bg-burgundyLight text-white font-bold text-sm transition flex items-center gap-1.5 shadow-sm">
+            <button onclick="openResetCycleModal()" class="px-4 py-2.5 sm:px-5 sm:py-2.5 rounded-xl bg-burgundy hover:bg-burgundyLight active:scale-95 text-white font-bold text-xs sm:text-sm transition flex items-center gap-2 shadow-sm shadow-burgundy/20">
               <i class="ph ph-archive-box text-base"></i><span>Arquivar & Iniciar Novo Mês</span>
             </button>
-            <button onclick="initiateDraw()" class="px-4 py-2.5 rounded-xl bg-white hover:bg-stone-50 text-stone-700 border border-stone-300 font-semibold text-sm transition">
-              Sortear Novamente
+            <button onclick="initiateDraw()" class="px-4 py-2.5 sm:px-5 sm:py-2.5 rounded-xl bg-white hover:bg-stone-50 active:scale-95 text-stone-700 border border-stone-300 font-bold text-xs sm:text-sm transition flex items-center gap-2">
+              <i class="ph ph-arrows-clockwise text-base"></i><span>Sortear Novamente</span>
             </button>
           </div>
 

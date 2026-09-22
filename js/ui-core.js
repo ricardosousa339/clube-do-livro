@@ -216,7 +216,8 @@ function toggleMobileStages() {
 }
 
 function toggleMobileHeaderMenu(e) {
-  if (e) e.stopPropagation();
+  if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+  document.getElementById('memberDropdown')?.classList.add('hidden');
   const menu = document.getElementById('mobileHeaderDropdown');
   if (!menu) return;
   menu.classList.toggle('hidden');
@@ -232,13 +233,23 @@ function toggleElement(id) {
   if (el) el.classList.toggle('hidden');
 }
 
-// Fechar menu mobile ao clicar fora
+// Fechar menu mobile e dropdown de integrantes ao clicar fora
 document.addEventListener('click', (e) => {
   const menu = document.getElementById('mobileHeaderDropdown');
   const btn = document.getElementById('mobileMenuBtn');
   if (menu && !menu.classList.contains('hidden')) {
     if (!menu.contains(e.target) && (!btn || !btn.contains(e.target))) {
       menu.classList.add('hidden');
+    }
+  }
+
+  const memberDropdown = document.getElementById('memberDropdown');
+  if (memberDropdown && !memberDropdown.classList.contains('hidden')) {
+    const clickedInside = memberDropdown.contains(e.target);
+    const clickedBtnDesktop = document.getElementById('activeMemberBtnDesktop')?.contains(e.target);
+    const clickedBtnMobile = document.getElementById('activeMemberBtnMobile')?.contains(e.target);
+    if (!clickedInside && !clickedBtnDesktop && !clickedBtnMobile) {
+      memberDropdown.classList.add('hidden');
     }
   }
 });
@@ -335,6 +346,19 @@ window.renderUI = function() {
   }
   if (activeMemberLabelMobile) {
     activeMemberLabelMobile.innerText = currentMem ? currentMem.name : 'Identificar';
+  }
+
+  const mobileLogoutSection = document.getElementById('mobileLogoutSection');
+  const mobileLogoutLabel = document.getElementById('mobileLogoutLabel');
+  if (mobileLogoutSection) {
+    if (currentMem) {
+      mobileLogoutSection.classList.remove('hidden');
+      if (mobileLogoutLabel) {
+        mobileLogoutLabel.innerText = `Sair de ${currentMem.name}`;
+      }
+    } else {
+      mobileLogoutSection.classList.add('hidden');
+    }
   }
 
   const dropdownList = document.getElementById('memberDropdownList');
@@ -509,6 +533,7 @@ function renderHomeScreen() {
     title: book?.title || '',
     author: book?.author || '',
     cover: book?.cover || '',
+    downloadUrl: book?.downloadUrl || '',
     memberName,
     monthLabel,
     drawDate,
@@ -590,6 +615,11 @@ function renderHomeScreen() {
 
             <!-- Botões de Ação -->
             <div class="pt-2 sm:pt-4 flex flex-wrap items-center justify-center sm:justify-start gap-2 sm:gap-3">
+              ${book.downloadUrl ? `
+                <a href="${escapeHtml(book.downloadUrl)}" target="_blank" rel="noopener noreferrer" class="px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-xs sm:text-sm transition flex items-center gap-1.5 sm:gap-2 shadow-md shadow-emerald-700/25 group">
+                  <i class="ph ph-download-simple text-base text-emerald-200 group-hover:translate-y-0.5 transition-transform"></i><span>Baixar Livro</span>
+                </a>
+              ` : ''}
               <button onclick="openCardPreviewModal()" class="px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl bg-stone-900 hover:bg-black text-white font-bold text-xs sm:text-sm transition flex items-center gap-1.5 sm:gap-2 shadow-sm">
                 <i class="ph ph-eye text-base text-gold"></i><span>Visualizar Card</span>
               </button>

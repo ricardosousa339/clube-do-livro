@@ -21,7 +21,11 @@ function selectActiveMember(memberId, force = false) {
   return true;
 }
 
-function toggleMemberDropdown() { document.getElementById('memberDropdown')?.classList.toggle('hidden'); }
+function toggleMemberDropdown(e) {
+  if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+  if (typeof closeMobileHeaderMenu === 'function') closeMobileHeaderMenu();
+  document.getElementById('memberDropdown')?.classList.toggle('hidden');
+}
 
 function showBlockedSwitchAlert(targetName, myName) {
   playSound('error');
@@ -34,6 +38,7 @@ function openLogoutModal() {
   const desc = document.getElementById('logoutModalDesc');
   if (desc) desc.innerHTML = `Deseja realmente sair de <strong>${escapeHtml(name)}</strong> neste aparelho?<br><br>Isso liberará este navegador para você entrar ou criar outro integrante.`;
   document.getElementById('memberDropdown')?.classList.add('hidden');
+  if (typeof closeMobileHeaderMenu === 'function') closeMobileHeaderMenu();
   document.getElementById('logoutModal')?.classList.remove('hidden');
 }
 
@@ -48,6 +53,8 @@ function executeLogoutMember() {
   document.getElementById('memberDropdown')?.classList.add('hidden');
   const activeLabel = document.getElementById('activeMemberLabel');
   if (activeLabel) activeLabel.innerText = 'Identificar-se';
+  const activeLabelMobile = document.getElementById('activeMemberLabelMobile');
+  if (activeLabelMobile) activeLabelMobile.innerText = 'Identificar';
   invalidateRenderCache();
   playSound('click');
   showToast('Você saiu do perfil.', 'info');

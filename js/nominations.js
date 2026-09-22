@@ -322,6 +322,8 @@ function openBookEditPreview(book, overrideMemberId, overrideBookKey) {
   document.getElementById('editBookTitle').value = book.title || '';
   document.getElementById('editBookAuthor').value = book.author || '';
   document.getElementById('editBookCoverUrl').value = book.cover || '';
+  const downloadUrlInput = document.getElementById('editBookDownloadUrl');
+  if (downloadUrlInput) downloadUrlInput.value = book.downloadUrl || '';
   
   // Preview da capa
   const preview = document.getElementById('editBookCoverPreview');
@@ -356,6 +358,10 @@ function confirmBookEdit() {
   const title = document.getElementById('editBookTitle').value.trim();
   const author = document.getElementById('editBookAuthor').value.trim();
   const coverUrl = document.getElementById('editBookCoverUrl').value.trim();
+  let downloadUrl = (document.getElementById('editBookDownloadUrl')?.value || '').trim();
+  if (downloadUrl && !/^https?:\/\//i.test(downloadUrl)) {
+    downloadUrl = 'https://' + downloadUrl;
+  }
 
   if (!title) return showToast('Informe ao menos o título do livro.', 'warning');
 
@@ -363,6 +369,7 @@ function confirmBookEdit() {
     title,
     author: author || 'Autor não informado',
     cover: coverUrl || DEFAULT_BOOK_COVER,
+    downloadUrl: downloadUrl || '',
     description: ''
   };
 
