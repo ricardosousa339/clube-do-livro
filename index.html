@@ -159,6 +159,9 @@
                   <span class="flex items-center gap-2"><i class="ph ph-clock-counter-clockwise text-base text-burgundy"></i> Histórico de Livros</span>
                   <span id="historyCountBadgeMobile" class="hidden px-1.5 py-0.2 bg-burgundy/10 text-burgundy font-black text-[10px] rounded-full">0</span>
                 </button>
+                <button onclick="closeMobileHeaderMenu(); openHistoryBook();" class="w-full px-3 py-2 text-left text-xs font-semibold text-amber-800 hover:bg-amber-50 flex items-center gap-2">
+                  <i class="ph ph-book-open text-base text-amber-600"></i> Livro do Ano (3D)
+                </button>
                 <button onclick="closeMobileHeaderMenu(); openShareModal();" class="w-full px-3 py-2 text-left text-xs font-semibold text-stone-700 hover:bg-stone-50 flex items-center gap-2">
                   <i class="ph ph-whatsapp-logo text-base text-emerald-600"></i> Convidar Integrantes
                 </button>
@@ -537,6 +540,19 @@
         </div>
         <button onclick="closeHistoryModal()" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-500 flex items-center justify-center"><i class="ph ph-x text-sm"></i></button>
       </div>
+      <!-- BOTÃO DE DESTAQUE: TOMO DO ANO (LIVRO 3D) -->
+      <div class="pt-3 pb-1">
+        <button onclick="openHistoryBook()" class="w-full p-2.5 sm:p-3 rounded-2xl bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 hover:from-amber-500 hover:to-amber-400 text-stone-950 font-black text-xs sm:text-sm flex items-center justify-between px-4 shadow-md shadow-amber-950/20 hover:scale-[1.01] active:scale-[0.99] transition border border-amber-300 group">
+          <span class="flex items-center gap-2">
+            <i class="ph ph-book-open text-lg"></i>
+            <span>Abrir o Livro do Ano (Tomo 3D)</span>
+          </span>
+          <span class="text-[11px] font-bold bg-amber-950/10 px-2.5 py-0.5 rounded-full flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+            <span>Folhear</span> <i class="ph ph-arrow-right"></i>
+          </span>
+        </button>
+      </div>
+
       <div id="historyTabsContainer" class="py-2"></div>
       <div id="historyListContainer" class="flex-1 overflow-y-auto custom-scrollbar my-2 space-y-3 pr-1"></div>
       <div class="pt-3 border-t border-stone-100 flex justify-between items-center text-xs text-stone-400">
@@ -544,6 +560,20 @@
         <button onclick="closeHistoryModal()" class="px-4 py-2 bg-stone-100 hover:bg-stone-200 rounded-xl text-stone-700 font-semibold transition">Fechar</button>
       </div>
     </div>
+  </div>
+
+  <!-- MODAL DO GRANDE LIVRO 3D DO HISTÓRICO (TOMO DO ANO) -->
+  <div id="historyBookModal" class="fixed inset-0 z-[65] bg-black/85 backdrop-blur-md flex flex-col justify-between hidden select-none overflow-hidden">
+    <!-- Barra Superior -->
+    <header class="px-4 py-3 sm:px-6 sm:py-3.5 bg-stone-950/90 border-b border-stone-800/80 flex items-center justify-between shrink-0 z-30" id="tomeHeaderControls"></header>
+
+    <!-- Viewport 3D do Livro -->
+    <main class="book-viewport flex-1 py-4 sm:py-6 px-2 sm:px-4">
+      <div id="tomeBookContainer" class="tome-book"></div>
+    </main>
+
+    <!-- Barra Inferior de Navegação -->
+    <footer class="px-4 py-3 sm:px-6 sm:py-3.5 bg-stone-950/90 border-t border-stone-800/80 flex items-center justify-between shrink-0 z-30" id="tomeFooterControls"></footer>
   </div>
 
   <!-- MODAL EDITAR LIVRO DO HISTÓRICO (ADMIN) -->
@@ -818,6 +848,7 @@
   <script src="js/modals.js"></script>
   <script src="js/sharing.js"></script>
   <script src="js/export-image.js"></script>
+  <script src="js/history-book.js"></script>
   <script src="js/admin.js"></script>
 
 </body>

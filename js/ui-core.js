@@ -623,6 +623,9 @@ function renderHomeScreen() {
               <button onclick="openCardPreviewModal()" class="px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl bg-stone-900 hover:bg-black text-white font-bold text-xs sm:text-sm transition flex items-center gap-1.5 sm:gap-2 shadow-sm">
                 <i class="ph ph-eye text-base text-gold"></i><span>Visualizar Card</span>
               </button>
+              <button onclick="openHistoryBook()" class="px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 hover:from-amber-500 hover:to-amber-400 text-stone-950 font-black text-xs sm:text-sm transition flex items-center gap-1.5 sm:gap-2 shadow-md shadow-amber-950/20 border border-amber-300 active:scale-95">
+                <i class="ph ph-book-open text-base"></i><span>Livro do Ano (3D)</span>
+              </button>
               <button onclick="openHistoryModal()" class="px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl border border-stone-300 hover:border-stone-400 bg-white hover:bg-stone-50 text-stone-700 font-bold text-xs sm:text-sm transition flex items-center gap-1.5 sm:gap-2 shadow-xs">
                 <i class="ph ph-clock-counter-clockwise text-base text-burgundy"></i><span>Ver Histórico</span>
               </button>
