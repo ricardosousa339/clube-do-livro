@@ -51,6 +51,19 @@ function getMemberName(memberId) {
 
 function changeStage(newStage) {
   // FIX: Stage é local — NÃO sincroniza na nuvem
+  // Bloqueia acesso às etapas se a rodada não estiver ativa
+  if (newStage !== 'home' && newStage !== 'nominations') {
+    const state = window.clubState;
+    if (state) {
+      const hasAnyNomination = state.members.some(m => m.book1 || m.book2);
+      const hasAnyVotes = Object.keys(state.votes || {}).length > 0;
+      const hasWinner = !!(state.winner && state.winner.book);
+      if (!hasAnyNomination && !hasAnyVotes && hasWinner) {
+        showToast('Inicie uma nova rodada para acessar esta etapa.', 'warning');
+        return;
+      }
+    }
+  }
   window.localStage = newStage;
   localStorage.setItem('clubeDoLivro_localStage', newStage);
   if (typeof window.renderUI === 'function') window.renderUI();
@@ -158,23 +171,57 @@ window.renderUI = function() {
     }
   }
 
+  // Detecta se uma rodada está ativa (indicações em andamento ou nenhum vencedor ainda)
+  const hasAnyNomination = state.members.some(m => m.book1 || m.book2);
+  const hasAnyVotes = Object.keys(state.votes || {}).length > 0;
+  const hasWinner = !!(state.winner && state.winner.book);
+  const isRoundActive = hasAnyNomination || hasAnyVotes || !hasWinner;
+
   // FIX: Usar localStage em vez de state.stage — cada usuário controla sua navegação
   ['home', 'nominations', 'voting', 'results', 'draw'].forEach(s => {
     const section = document.getElementById(`section-${s}`);
     const btn = document.getElementById(`stepBtn-${s}`);
     const icon = document.getElementById(`stepIcon-${s}`);
     if (section && btn && icon) {
-      if (s === window.localStage) {
+      const isLocked = !isRoundActive && s !== 'home';
+
+      if (s === window.localStage && !isLocked) {
         section.classList.remove('hidden');
         btn.className = "flex items-center gap-3 p-3 rounded-2xl border transition-all text-left bg-white border-burgundy shadow-sm ring-2 ring-burgundy/20";
         icon.className = "w-8 h-8 rounded-xl bg-burgundy text-white flex items-center justify-center font-bold text-sm shrink-0";
+        btn.onclick = () => changeStage(s);
+      } else if (isLocked) {
+        section.classList.add('hidden');
+        btn.className = "flex items-center gap-3 p-3 rounded-2xl border transition-all text-left bg-stone-50 border-stone-200 text-stone-300 cursor-not-allowed opacity-60";
+        icon.className = "w-8 h-8 rounded-xl bg-stone-100 text-stone-300 flex items-center justify-center font-bold text-sm shrink-0";
+        // Adiciona ícone de cadeado no lugar do número
+        if (!icon.querySelector('.ph-lock')) {
+          icon.innerHTML = '<i class="ph ph-lock text-base"></i>';
+        }
+        btn.onclick = (e) => {
+          e.preventDefault();
+          showToast('Inicie uma nova rodada para acessar esta etapa.', 'warning');
+        };
       } else {
         section.classList.add('hidden');
         btn.className = "flex items-center gap-3 p-3 rounded-2xl border transition-all text-left bg-white/60 border-stone-200 text-stone-400 hover:border-stone-300";
         icon.className = "w-8 h-8 rounded-xl bg-stone-100 text-stone-500 flex items-center justify-center font-bold text-sm shrink-0";
+        btn.onclick = () => changeStage(s);
       }
     }
   });
+
+  // Se o stage atual está bloqueado, redireciona para home
+  if (!isRoundActive && window.localStage !== 'home') {
+    window.localStage = 'home';
+    localStorage.setItem('clubeDoLivro_localStage', 'home');
+    const homeSection = document.getElementById('section-home');
+    const homeBtn = document.getElementById('stepBtn-home');
+    const homeIcon = document.getElementById('stepIcon-home');
+    if (homeSection) homeSection.classList.remove('hidden');
+    if (homeBtn) homeBtn.className = "flex items-center gap-3 p-3 rounded-2xl border transition-all text-left bg-white border-burgundy shadow-sm ring-2 ring-burgundy/20";
+    if (homeIcon) homeIcon.className = "w-8 h-8 rounded-xl bg-burgundy text-white flex items-center justify-center font-bold text-sm shrink-0";
+  }
 
   renderHomeScreen();
   renderNominationsGrid();
@@ -297,15 +344,12 @@ function renderHomeScreen() {
               </span>
             </div>
 
-            <!-- Botões de Ação Separados -->
+            <!-- Botões de Ação -->
             <div class="pt-4 flex flex-wrap items-center justify-center md:justify-start gap-3">
-              <button onclick="downloadCurrentMonthCard()" class="px-4.5 py-2.5 rounded-xl bg-stone-900 hover:bg-black text-white font-bold text-sm transition flex items-center gap-2 shadow-sm">
-                <i class="ph ph-download-simple text-base text-gold"></i><span>Baixar Card</span>
+              <button onclick="openCardPreviewModal()" class="px-5 py-2.5 rounded-xl bg-stone-900 hover:bg-black text-white font-bold text-sm transition flex items-center gap-2 shadow-sm">
+                <i class="ph ph-eye text-base text-gold"></i><span>Visualizar Card</span>
               </button>
-              <button onclick="shareMonthCardWhatsApp()" class="px-4.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm transition flex items-center gap-2 shadow-sm shadow-emerald-700/20">
-                <i class="ph ph-whatsapp-logo text-base"></i><span>Enviar para o WhatsApp</span>
-              </button>
-              <button onclick="openHistoryModal()" class="px-4.5 py-2.5 rounded-xl border border-stone-300 hover:border-stone-400 bg-white hover:bg-stone-50 text-stone-700 font-bold text-sm transition flex items-center gap-2 shadow-xs">
+              <button onclick="openHistoryModal()" class="px-5 py-2.5 rounded-xl border border-stone-300 hover:border-stone-400 bg-white hover:bg-stone-50 text-stone-700 font-bold text-sm transition flex items-center gap-2 shadow-xs">
                 <i class="ph ph-clock-counter-clockwise text-base text-burgundy"></i><span>Ver Histórico</span>
               </button>
             </div>

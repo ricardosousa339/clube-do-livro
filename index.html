@@ -680,6 +680,34 @@
     </div>
   </div>
 
+  <!-- MODAL DE PREVIEW DO CARD -->
+  <div id="cardPreviewModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-stone-200 flex flex-col max-h-[92vh] overflow-hidden">
+      <div class="flex items-center justify-between px-5 py-3.5 border-b border-stone-100 shrink-0">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-burgundy/10 text-burgundy flex items-center justify-center text-lg"><i class="ph ph-image"></i></div>
+          <h3 class="text-sm font-bold text-stone-900">Card do Livro do Mês</h3>
+        </div>
+        <button onclick="closeCardPreviewModal()" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-500 flex items-center justify-center transition"><i class="ph ph-x text-sm"></i></button>
+      </div>
+      <div class="flex-1 overflow-y-auto p-4 flex items-center justify-center bg-stone-50">
+        <div id="cardPreviewLoading" class="text-center py-12 space-y-3">
+          <div class="w-10 h-10 border-3 border-burgundy/30 border-t-burgundy rounded-full animate-spin mx-auto"></div>
+          <p class="text-xs text-stone-500 font-medium">Gerando card...</p>
+        </div>
+        <img id="cardPreviewImage" src="" alt="Card do Livro do Mês" class="hidden max-w-full rounded-xl shadow-lg border border-stone-200">
+      </div>
+      <div class="px-5 py-4 border-t border-stone-100 flex items-center gap-2.5 shrink-0">
+        <button onclick="downloadCurrentMonthCard(); closeCardPreviewModal();" class="flex-1 py-2.5 rounded-xl bg-stone-900 hover:bg-black text-white text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm">
+          <i class="ph ph-download-simple text-sm"></i><span>Baixar Imagem</span>
+        </button>
+        <button onclick="shareMonthCardWhatsApp(); closeCardPreviewModal();" class="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm shadow-emerald-700/20">
+          <i class="ph ph-whatsapp-logo text-sm"></i><span>Enviar no WhatsApp</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <div id="toastContainer" class="fixed bottom-5 left-5 z-[70] flex flex-col gap-2 pointer-events-none"></div>
   
   <div id="versionBadge" class="fixed bottom-3 right-3 text-[11px] text-stone-600 bg-stone-100/90 border border-stone-300 px-2.5 py-0.5 rounded-full font-mono select-none shadow-xs z-30 opacity-80 hover:opacity-100 transition cursor-pointer">v6.1-stable</div>

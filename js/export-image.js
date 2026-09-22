@@ -165,7 +165,7 @@ async function generateYearMosaic() {
   ctx.fillStyle = '#D4A359';
   ctx.font = 'bold 14px "Plus Jakarta Sans", sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText('✦  RETROSPECTIVA  ✦', canvasW / 2, 45);
+  ctx.fillText('—  RETROSPECTIVA  —', canvasW / 2, 45);
 
   ctx.fillStyle = '#FBFAF8';
   ctx.font = 'bold 36px "Merriweather", Georgia, serif';
@@ -217,7 +217,7 @@ async function generateYearMosaic() {
   ctx.fillStyle = 'rgba(212, 163, 89, 0.5)';
   ctx.font = '12px "Plus Jakarta Sans", sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText('📚 Gerado pelo Clube do Livro', canvasW / 2, canvasH - 20);
+  ctx.fillText('Gerado pelo Clube do Livro', canvasW / 2, canvasH - 20);
 
   // Download
   downloadCanvasAsImage(canvas, `mosaico-${clubName.replace(/\s+/g, '-').toLowerCase()}-${currentYear}.png`);
@@ -380,36 +380,36 @@ async function renderCurrentMonthCardCanvas() {
   const monthLabel = (window.clubState.history && window.clubState.history[0]?.monthLabel) || new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(new Date());
 
   // Badge superior com a cor de destaque da capa
-  const badgeText = `📚 ${clubName.toUpperCase()}`;
-  ctx.font = 'bold 16px "Plus Jakarta Sans", sans-serif';
+  const badgeText = clubName.toUpperCase();
+  ctx.font = 'bold 18px "Plus Jakarta Sans", sans-serif';
   const textMetrics = ctx.measureText(badgeText);
-  const badgeW = Math.max(300, textMetrics.width + 64);
-  const badgeH = 42;
+  const badgeW = Math.max(280, textMetrics.width + 64);
+  const badgeH = 44;
   const badgeX = (canvasW - badgeW) / 2;
-  const badgeY = 50;
+  const badgeY = 48;
 
-  roundRect(ctx, badgeX, badgeY, badgeW, badgeH, 21);
+  roundRect(ctx, badgeX, badgeY, badgeW, badgeH, 22);
   ctx.fillStyle = palette.cardBg;
   ctx.fill();
-  roundRect(ctx, badgeX, badgeY, badgeW, badgeH, 21);
+  roundRect(ctx, badgeX, badgeY, badgeW, badgeH, 22);
   ctx.strokeStyle = palette.border;
   ctx.lineWidth = 1.5;
   ctx.stroke();
 
   ctx.fillStyle = palette.accent;
   ctx.textAlign = 'center';
-  ctx.fillText(badgeText, canvasW / 2, badgeY + 27);
+  ctx.fillText(badgeText, canvasW / 2, badgeY + 28);
 
-  // Título do Mês
+  // Subtítulo do Mês — mais espaço antes da capa
   ctx.fillStyle = '#FBFAF8';
-  ctx.font = 'bold 34px "Merriweather", Georgia, serif';
-  ctx.fillText(`Livro Escolhido • ${monthLabel}`, canvasW / 2, 130);
+  ctx.font = 'bold 36px "Merriweather", Georgia, serif';
+  ctx.fillText(`Livro Escolhido  ·  ${monthLabel}`, canvasW / 2, 138);
 
-  // Capa do livro na proporção padrão 2:3 (390 x 585 px)
-  const bookW = 390;
-  const bookH = 585;
+  // Capa do livro — empurrada para baixo com mais respiro
+  const bookW = 400;
+  const bookH = 600;
   const bookX = (canvasW - bookW) / 2;
-  const bookY = 160;
+  const bookY = 180;
 
   // Sombra profunda multicamada
   ctx.save();
@@ -435,104 +435,140 @@ async function renderCurrentMonthCardCanvas() {
   ctx.stroke();
 
   // --- SEÇÃO INFERIOR DO CARD ---
+  // Posiciona tudo sequencialmente abaixo da capa para eliminar espaços vazios
   const hasDesc = book.description && book.description.trim().length > 3;
-  const currentY = bookY + bookH + (hasDesc ? 44 : 54);
+  let cursorY = bookY + bookH + 80;
 
-  // Título da Obra (texto maior e imponente: 46px)
+  // Título da Obra
   ctx.fillStyle = '#FBFAF8';
-  ctx.font = 'bold 46px "Merriweather", Georgia, serif';
+  ctx.font = 'bold 54px "Merriweather", Georgia, serif';
   ctx.textAlign = 'center';
   const titleLines = wrapText(ctx, book.title || 'Sem Título', canvasW - 140).slice(0, 2);
   titleLines.forEach((line, i) => {
-    ctx.fillText(line, canvasW / 2, currentY + i * 56);
+    ctx.fillText(line, canvasW / 2, cursorY + i * 66);
   });
+  cursorY += titleLines.length * 66 + 12;
 
-  // Autor (maior: 28px)
-  const authorY = currentY + titleLines.length * 56 + (hasDesc ? 8 : 12);
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.82)';
-  ctx.font = '600 28px "Plus Jakarta Sans", sans-serif';
-  ctx.fillText(book.author || 'Autor não informado', canvasW / 2, authorY);
+  // Autor
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+  ctx.font = '600 34px "Plus Jakarta Sans", sans-serif';
+  ctx.fillText(book.author || 'Autor não informado', canvasW / 2, cursorY);
+  cursorY += 20;
 
-  // Sinopse (apenas se existir no livro)
-  let contentBottomY = authorY;
+  // Sinopse (apenas se existir)
   if (hasDesc) {
-    const nextSectionY = authorY + 36;
+    cursorY += 28;
     const descText = `"${book.description.replace(/^"|"$/g, '').trim()}"`;
     ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
-    ctx.font = 'italic 21px "Merriweather", Georgia, serif';
+    ctx.font = 'italic 24px "Merriweather", Georgia, serif';
     const descLines = wrapText(ctx, descText, canvasW - 180).slice(0, 2);
     descLines.forEach((line, i) => {
-      ctx.fillText(line, canvasW / 2, nextSectionY + i * 32);
+      ctx.fillText(line, canvasW / 2, cursorY + i * 36);
     });
-    contentBottomY = nextSectionY + (descLines.length - 1) * 32;
+    cursorY += (descLines.length - 1) * 36 + 20;
   }
 
-  // Ancora os cards de metadados na base do card para preencher perfeitamente o espaço inferior
-  const cardW = 300;
-  const cardH = 98;
-  const gap = 20;
+  // Divisor fino e discreto
+  cursorY += 30;
+  ctx.strokeStyle = palette.border;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(canvasW / 2 - 120, cursorY);
+  ctx.lineTo(canvasW / 2 + 120, cursorY);
+  ctx.stroke();
+  cursorY += 36;
+
+  // Cards de metadados — apenas 2, mais largos e com fundo sólido para legibilidade
   const metaItems = [
-    { icon: '👤', label: 'INDICADO POR', value: memberName },
-    { icon: '📅', label: 'DATA DO SORTEIO', value: (window.clubState.history && window.clubState.history[0]?.archivedAt) || new Date().toLocaleDateString('pt-BR') },
-    { icon: '📖', label: 'LEITURA COLETIVA', value: (window.clubState.history && window.clubState.history[0]?.finalists && window.clubState.history[0].finalists.length) ? `Venceu ${window.clubState.history[0].finalists.length} obras` : `${(window.clubState.members || []).length || 2} Integrantes` }
+    { label: 'INDICADO POR', value: memberName },
+    { label: 'DATA DO SORTEIO', value: (window.clubState.history && window.clubState.history[0]?.archivedAt) || new Date().toLocaleDateString('pt-BR') }
   ];
 
+  const cardW = 420;
+  const cardH = 110;
+  const gap = 24;
   const totalMetaW = metaItems.length * cardW + (metaItems.length - 1) * gap;
   const startX = (canvasW - totalMetaW) / 2;
-  const metaY = canvasH - 215; // Fixado perfeitamente na zona nobre inferior
-
-  // Divisor decorativo centrado entre o conteúdo superior e os cards
-  const divY = Math.round((contentBottomY + 24 + metaY) / 2);
-  ctx.strokeStyle = palette.border;
-  ctx.lineWidth = 1.2;
-  ctx.beginPath();
-  ctx.moveTo(canvasW / 2 - 150, divY);
-  ctx.lineTo(canvasW / 2 + 150, divY);
-  ctx.stroke();
-
-  ctx.fillStyle = palette.accent;
-  ctx.font = '16px sans-serif';
-  ctx.fillText('✦', canvasW / 2, divY + 6);
 
   metaItems.forEach((item, idx) => {
     const x = startX + idx * (cardW + gap);
-    
-    // Fundo glassmorphism do card de metadados com cor extraída da capa
-    roundRect(ctx, x, metaY, cardW, cardH, 18);
-    ctx.fillStyle = palette.cardBg;
+
+    // Fundo claro e sólido — garante contraste em qualquer paleta de capa
+    roundRect(ctx, x, cursorY, cardW, cardH, 18);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.88)';
     ctx.fill();
 
-    roundRect(ctx, x, metaY, cardW, cardH, 18);
+    roundRect(ctx, x, cursorY, cardW, cardH, 18);
     ctx.strokeStyle = palette.border;
     ctx.lineWidth = 1.5;
     ctx.stroke();
 
-    // Rótulo com ícone (maior: 13px)
-    ctx.fillStyle = palette.accent;
-    ctx.font = 'bold 13px "Plus Jakarta Sans", sans-serif';
+    // Rótulo — texto escuro sobre fundo claro, sempre legível
+    ctx.fillStyle = '#6B5C52';
+    ctx.font = 'bold 16px "Plus Jakarta Sans", sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(`${item.icon} ${item.label}`, x + cardW / 2, metaY + 36);
+    ctx.fillText(item.label, x + cardW / 2, cursorY + 40);
 
-    // Valor em destaque (maior: 22px)
-    ctx.fillStyle = '#FBFAF8';
-    ctx.font = 'bold 22px "Plus Jakarta Sans", sans-serif';
+    // Valor — preto denso, grande e bold
+    ctx.fillStyle = '#1A1412';
+    ctx.font = 'bold 30px "Plus Jakarta Sans", sans-serif';
     let valText = item.value;
-    if (ctx.measureText(valText).width > cardW - 24) {
-      while (ctx.measureText(valText + '...').width > cardW - 24 && valText.length > 3) {
+    if (ctx.measureText(valText).width > cardW - 40) {
+      while (ctx.measureText(valText + '...').width > cardW - 40 && valText.length > 3) {
         valText = valText.slice(0, -1);
       }
       valText += '...';
     }
-    ctx.fillText(valText, x + cardW / 2, metaY + 72);
+    ctx.fillText(valText, x + cardW / 2, cursorY + 80);
   });
 
-  // Rodapé Editorial Elegante (maior: 16px)
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+  // Rodapé — colado na base do card
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.40)';
   ctx.font = '500 16px "Plus Jakarta Sans", sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText(`📚 ${clubName} • Leitura Oficial • Edição de ${monthLabel}`, canvasW / 2, canvasH - 45);
+  ctx.fillText(`${clubName}  ·  Leitura Oficial  ·  ${monthLabel}`, canvasW / 2, canvasH - 36);
 
   return canvas;
+}
+
+// ==========================================
+// PREVIEW DO CARD (MODAL)
+// ==========================================
+async function openCardPreviewModal() {
+  const modal = document.getElementById('cardPreviewModal');
+  const loading = document.getElementById('cardPreviewLoading');
+  const img = document.getElementById('cardPreviewImage');
+  if (!modal) return;
+
+  // Mostra modal com loading
+  modal.classList.remove('hidden');
+  loading.classList.remove('hidden');
+  img.classList.add('hidden');
+  img.src = '';
+
+  try {
+    const canvas = await renderCurrentMonthCardCanvas();
+    if (!canvas) {
+      modal.classList.add('hidden');
+      return;
+    }
+
+    const dataUrl = canvas.toDataURL('image/png');
+    img.src = dataUrl;
+    img.onload = () => {
+      loading.classList.add('hidden');
+      img.classList.remove('hidden');
+    };
+  } catch (err) {
+    console.error('[Preview] Erro ao gerar card:', err);
+    showToast('Erro ao gerar o card.', 'danger');
+    modal.classList.add('hidden');
+  }
+}
+
+function closeCardPreviewModal() {
+  const modal = document.getElementById('cardPreviewModal');
+  if (modal) modal.classList.add('hidden');
 }
 
 // ==========================================
