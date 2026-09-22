@@ -27,7 +27,6 @@ function initAdminBadgeTrigger() {
   const badge = document.getElementById('versionBadge');
   if (!badge) return;
 
-  badge.classList.add('cursor-pointer');
   badge.setAttribute('title', 'Versão do Clube do Livro');
 
   badge.addEventListener('click', () => {

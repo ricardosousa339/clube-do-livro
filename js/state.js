@@ -13,7 +13,8 @@ window.clubState = {
   drawEvent: null, 
   drawLogs: [],
   fridge: [],                                    // Geladeira: livros finalistas que perderam o sorteio
-  closedCycle: { enabled: true, winners: [] }    // Ciclo Fechado: campeões ficam de fora da roleta até todos vencerem
+  closedCycle: { enabled: true, winners: [] },   // Ciclo Fechado: campeões ficam de fora da roleta até todos vencerem
+  roundStarted: false                            // Flag que indica se a rodada de indicações/votação foi iniciada
 };
 
 // Stage é LOCAL — cada usuário controla sua própria navegação

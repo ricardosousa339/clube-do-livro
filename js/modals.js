@@ -121,6 +121,7 @@ function handleArchiveAndStartNewMonth() {
   window.clubState.winner = null;
   window.clubState.drawEvent = null;
   window.clubState.drawLogs = [];
+  window.clubState.roundStarted = true;
   closeConfirmModal();
   invalidateRenderCache();
   persistState();
@@ -136,6 +137,7 @@ function handleSoftResetOnly() {
   window.clubState.winner = null;
   window.clubState.drawEvent = null;
   window.clubState.drawLogs = [];
+  window.clubState.roundStarted = true;
   closeConfirmModal();
   invalidateRenderCache();
   persistState();

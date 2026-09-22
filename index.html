@@ -87,28 +87,28 @@
 
   <!-- MAIN APP -->
   <div id="mainApp" class="flex-1 flex flex-col hidden">
-    <header class="border-b border-[#E7DFD5] bg-[#FFFFFF]/80 backdrop-blur-md sticky top-0 z-40">
-      <div class="max-w-6xl mx-auto px-4 py-3 sm:px-6 flex flex-wrap items-center justify-between gap-3">
-        <div class="flex items-center space-x-3">
-          <div class="w-10 h-10 rounded-xl bg-burgundy flex items-center justify-center text-gold shadow-sm">
-            <i class="ph ph-books text-2xl"></i>
+    <header class="border-b border-[#E7DFD5] bg-[#FFFFFF]/85 backdrop-blur-md sticky top-0 z-40">
+      <div class="max-w-6xl mx-auto px-3.5 sm:px-6 py-2 sm:py-3 flex items-center justify-between gap-2">
+        <div class="flex items-center space-x-2.5 sm:space-x-3 min-w-0">
+          <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-burgundy flex items-center justify-center text-gold shadow-sm shrink-0">
+            <i class="ph ph-books text-lg sm:text-2xl"></i>
           </div>
-          <div>
-            <div class="flex items-center gap-2">
-              <h1 id="clubTitleHeader" class="font-serif font-bold text-lg text-[#2A1F1B] leading-tight">Clube do Livro</h1>
-              <span class="text-[10px] font-mono font-semibold bg-burgundy/10 text-burgundy border border-burgundy/20 px-1.5 py-0.5 rounded-md">v6.1-stable</span>
-              <button onclick="openEditClubNameModal()" title="Editar nome do clube" class="text-stone-400 hover:text-burgundy transition">
-                <i class="ph ph-pencil-simple text-sm"></i>
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5 sm:gap-2">
+              <h1 id="clubTitleHeader" class="font-serif font-bold text-base sm:text-lg text-[#2A1F1B] leading-tight truncate">Clube do Livro</h1>
+              <button onclick="openEditClubNameModal()" title="Editar nome do clube" class="text-stone-400 hover:text-burgundy transition shrink-0">
+                <i class="ph ph-pencil-simple text-xs sm:text-sm"></i>
               </button>
             </div>
-            <p id="clubSubtitleHeader" class="text-xs text-stone-500">Conectando...</p>
+            <p id="clubSubtitleHeader" class="hidden sm:block text-xs text-stone-500 truncate">Conectando...</p>
           </div>
         </div>
 
-        <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
+        <!-- AÇÕES DO HEADER NO DESKTOP (sm:) -->
+        <div class="hidden sm:flex items-center gap-2 sm:gap-3">
           <button onclick="openHistoryModal()" title="Histórico de Livros Lidos" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 transition text-xs font-semibold shadow-sm text-stone-700">
             <i class="ph ph-clock-counter-clockwise text-base text-burgundy"></i>
-            <span class="hidden sm:inline">Histórico</span>
+            <span>Histórico</span>
             <span id="historyCountBadge" class="hidden px-1.5 py-0.2 bg-burgundy/10 text-burgundy font-black text-[10px] rounded-full">0</span>
           </button>
 
@@ -118,7 +118,7 @@
 
           <button onclick="openShareModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition text-xs font-bold shadow-sm shadow-emerald-700/20">
             <i class="ph ph-whatsapp-logo text-base"></i>
-            <span class="hidden sm:inline">Convidar</span>
+            <span>Convidar</span>
           </button>
 
           <div class="relative">
@@ -140,15 +140,80 @@
             </div>
           </div>
 
+          <button onclick="handleAdminTrigger()" title="Painel de Administração" class="p-2 text-stone-400 hover:text-amber-600 rounded-xl hover:bg-amber-50 transition">
+            <i class="ph ph-shield-star text-lg"></i>
+          </button>
+
           <button onclick="openResetCycleModal()" title="Reiniciar rodada ou Próximo Mês" class="p-2 text-stone-400 hover:text-burgundy rounded-xl hover:bg-stone-100 transition">
             <i class="ph ph-arrows-counter-clockwise text-lg"></i>
           </button>
         </div>
+
+        <!-- AÇÕES DO HEADER NO CELULAR (< sm) -->
+        <div class="flex sm:hidden items-center gap-1.5">
+          <!-- Perfil no Mobile -->
+          <button onclick="toggleMemberDropdown()" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-stone-200 bg-white text-xs font-bold text-stone-800 shadow-xs max-w-[130px] truncate">
+            <i class="ph ph-user-circle text-base text-burgundy shrink-0"></i>
+            <span id="activeMemberLabelMobile" class="truncate">Identificar</span>
+          </button>
+
+          <!-- Menu de Ações Secundárias (Colapsável) -->
+          <div class="relative">
+            <button onclick="toggleMobileHeaderMenu(event)" id="mobileMenuBtn" class="p-2 text-stone-600 hover:text-stone-900 bg-stone-100 hover:bg-stone-200 rounded-xl transition flex items-center justify-center" title="Menu de Ações">
+              <i class="ph ph-dots-three-vertical text-base font-bold"></i>
+            </button>
+
+            <!-- Dropdown do Menu Mobile -->
+            <div id="mobileHeaderDropdown" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-stone-200 py-1.5 z-50 divide-y divide-stone-100">
+              <div class="px-3 py-1.5 text-[10px] font-bold text-stone-400 uppercase tracking-wider">Ações do Clube</div>
+              <div class="py-1">
+                <button onclick="closeMobileHeaderMenu(); openHistoryModal();" class="w-full px-3 py-2 text-left text-xs font-semibold text-stone-700 hover:bg-stone-50 flex items-center justify-between">
+                  <span class="flex items-center gap-2"><i class="ph ph-clock-counter-clockwise text-base text-burgundy"></i> Histórico de Livros</span>
+                  <span id="historyCountBadgeMobile" class="hidden px-1.5 py-0.2 bg-burgundy/10 text-burgundy font-black text-[10px] rounded-full">0</span>
+                </button>
+                <button onclick="closeMobileHeaderMenu(); openShareModal();" class="w-full px-3 py-2 text-left text-xs font-semibold text-stone-700 hover:bg-stone-50 flex items-center gap-2">
+                  <i class="ph ph-whatsapp-logo text-base text-emerald-600"></i> Convidar Integrantes
+                </button>
+              </div>
+              <div class="py-1">
+                <button onclick="closeMobileHeaderMenu(); handleAdminTrigger();" class="w-full px-3 py-2 text-left text-xs font-semibold text-amber-700 hover:bg-amber-50 flex items-center gap-2">
+                  <i class="ph ph-shield-star text-base text-amber-600"></i> Painel de Administração
+                </button>
+                <button onclick="closeMobileHeaderMenu(); openResetCycleModal();" class="w-full px-3 py-2 text-left text-xs font-semibold text-stone-700 hover:bg-stone-50 flex items-center gap-2">
+                  <i class="ph ph-arrows-counter-clockwise text-base text-burgundy"></i> Reiniciar Rodada
+                </button>
+                <button onclick="closeMobileHeaderMenu(); openEditClubNameModal();" class="w-full px-3 py-2 text-left text-xs font-semibold text-stone-700 hover:bg-stone-50 flex items-center gap-2">
+                  <i class="ph ph-pencil-simple text-base text-stone-500"></i> Renomear Clube
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </header>
 
-    <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-6 sm:px-6">
-      <div class="mb-8">
+    <main class="flex-1 max-w-6xl w-full mx-auto px-3.5 py-3 sm:px-6 sm:py-6">
+      <!-- BARRA DA ETAPA ATUAL NO MOBILE (Colapsável) -->
+      <div id="mobileStageBar" class="sm:hidden mb-3">
+        <button onclick="toggleMobileStages()" id="mobileStageBarBtn" class="w-full flex items-center justify-between p-2.5 rounded-2xl bg-white border border-stone-200/90 shadow-xs active:bg-stone-50 transition">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div id="mobileActiveStageIcon" class="w-7 h-7 rounded-xl bg-burgundy text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
+              <i class="ph ph-book-open-text"></i>
+            </div>
+            <div class="text-left min-w-0">
+              <div id="mobileActiveStageBadge" class="text-[10px] font-bold text-burgundy uppercase tracking-wider leading-none">Etapa Atual</div>
+              <div id="mobileActiveStageTitle" class="text-xs font-bold text-stone-900 truncate mt-0.5">Livro Atual</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-stone-100 text-stone-600 text-xs font-semibold shrink-0">
+            <span id="mobileStagesToggleText">Etapas</span>
+            <i id="mobileStagesChevron" class="ph ph-caret-down text-xs transition-transform duration-200"></i>
+          </div>
+        </button>
+      </div>
+
+      <!-- CONTAINER DOS BOTÕES DE ETAPA (Colapsado por padrão no mobile, sempre grid no desktop) -->
+      <div id="stageButtonsContainer" class="hidden sm:block mb-4 sm:mb-8 transition-all duration-200">
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3">
           <button onclick="changeStage('home')" id="stepBtn-home" class="flex items-center gap-3 p-3 rounded-2xl border transition-all text-left bg-white border-burgundy shadow-sm ring-1 ring-burgundy/20">
             <div id="stepIcon-home" class="w-8 h-8 rounded-xl bg-burgundy text-white flex items-center justify-center font-bold text-sm shrink-0">
@@ -197,50 +262,60 @@
         </div>
       </section>
 
-      <section id="section-nominations" class="space-y-6 hidden">
-        <div class="flex flex-wrap items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-[#EBE4D8] shadow-xs">
-          <div>
-            <span class="inline-block px-3 py-1 bg-burgundy/10 text-burgundy font-bold text-xs rounded-full uppercase tracking-wider mb-2">Primeira Fase</span>
-            <h2 class="text-2xl font-serif font-bold text-[#2A1F1B]">Indicação das Obras</h2>
-            <p id="nominationsSubtitleDesc" class="text-stone-600 text-sm mt-1 max-w-2xl">
+      <section id="section-nominations" class="space-y-4 sm:space-y-6 hidden">
+        <div class="flex flex-wrap items-center justify-between gap-3 sm:gap-4 bg-white p-4 sm:p-6 rounded-3xl border border-[#EBE4D8] shadow-xs">
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-2">
+              <span class="inline-block px-2.5 py-0.5 bg-burgundy/10 text-burgundy font-bold text-[10px] sm:text-xs rounded-full uppercase tracking-wider">Primeira Fase</span>
+              <button onclick="toggleElement('nominationsSubtitleDesc')" class="sm:hidden text-[11px] text-stone-500 hover:text-burgundy flex items-center gap-1 font-semibold">
+                <i class="ph ph-info"></i><span>Regras</span>
+              </button>
+            </div>
+            <h2 class="text-xl sm:text-2xl font-serif font-bold text-[#2A1F1B] mt-0.5">Indicação das Obras</h2>
+            <p id="nominationsSubtitleDesc" class="hidden sm:block text-stone-600 text-xs sm:text-sm mt-1 max-w-2xl">
               Cada integrante indica <strong>dois livros</strong>: sua 1ª e 2ª opção.
             </p>
           </div>
-          <div class="flex flex-wrap items-center gap-2.5">
-            <button onclick="promptAddNewMember()" class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs font-bold transition">
+          <div class="flex flex-wrap items-center gap-2 sm:gap-2.5 w-full sm:w-auto justify-between sm:justify-end">
+            <button onclick="promptAddNewMember()" class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs font-bold transition">
               <i class="ph ph-user-plus text-sm"></i>
-              <span>+ Adicionar Integrante</span>
+              <span>+ Integrante</span>
             </button>
-            <span id="nominationCounterBadge" class="text-xs font-bold px-3 py-2 bg-stone-100 text-stone-700 rounded-xl border border-stone-200">0 membros concluídos</span>
-            <button onclick="proceedToVotingIfReady()" class="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-burgundy hover:bg-burgundyLight text-white text-sm font-bold shadow-md shadow-burgundy/20 transition">
-              <span>Avançar para Votação</span>
+            <span id="nominationCounterBadge" class="text-xs font-bold px-2.5 py-2 bg-stone-100 text-stone-700 rounded-xl border border-stone-200">0 membros concluídos</span>
+            <button onclick="proceedToVotingIfReady()" class="flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-2xl bg-burgundy hover:bg-burgundyLight text-white text-xs sm:text-sm font-bold shadow-md shadow-burgundy/20 transition">
+              <span>Votação</span>
               <i class="ph ph-arrow-right font-bold"></i>
             </button>
           </div>
         </div>
-        <div id="membersGrid" class="space-y-8"></div>
+        <div id="membersGrid" class="space-y-6 sm:space-y-8"></div>
       </section>
 
-      <section id="section-voting" class="hidden space-y-6">
-        <div class="flex flex-wrap items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-[#EBE4D8] shadow-xs">
-          <div>
-            <span class="inline-block px-3 py-1 bg-rose-50 text-rose-700 font-bold text-xs rounded-full uppercase tracking-wider mb-2">Segunda Fase</span>
-            <h2 class="text-2xl font-serif font-bold text-[#2A1F1B]">Voto de Exclusão (Veto)</h2>
-            <p class="text-stone-600 text-sm mt-1 max-w-2xl">
+      <section id="section-voting" class="hidden space-y-4 sm:space-y-6">
+        <div class="flex flex-wrap items-center justify-between gap-3 sm:gap-4 bg-white p-4 sm:p-6 rounded-3xl border border-[#EBE4D8] shadow-xs">
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-2">
+              <span class="inline-block px-2.5 py-0.5 bg-rose-50 text-rose-700 font-bold text-[10px] sm:text-xs rounded-full uppercase tracking-wider">Segunda Fase</span>
+              <button onclick="toggleElement('votingSubtitleDesc')" class="sm:hidden text-[11px] text-stone-500 hover:text-burgundy flex items-center gap-1 font-semibold">
+                <i class="ph ph-info"></i><span>Regras</span>
+              </button>
+            </div>
+            <h2 class="text-xl sm:text-2xl font-serif font-bold text-[#2A1F1B] mt-0.5">Voto de Exclusão (Veto)</h2>
+            <p id="votingSubtitleDesc" class="hidden sm:block text-stone-600 text-xs sm:text-sm mt-1 max-w-2xl">
               Escolha <strong>1 livro de cada colega</strong> para excluir. A obra mais vetada de cada par será eliminada.
             </p>
           </div>
-          <div class="flex items-center gap-3">
-            <span id="votingProgressBadge" class="text-xs font-bold px-3 py-2 bg-stone-100 text-stone-700 rounded-xl border border-stone-200">0 votaram</span>
-            <button onclick="calculateAndAdvanceToResults()" class="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-forest hover:bg-emerald-800 text-white text-sm font-bold shadow-md transition">
+          <div class="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-between sm:justify-end">
+            <span id="votingProgressBadge" class="text-xs font-bold px-2.5 py-2 bg-stone-100 text-stone-700 rounded-xl border border-stone-200">0 votaram</span>
+            <button onclick="calculateAndAdvanceToResults()" class="flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-2xl bg-forest hover:bg-emerald-800 text-white text-xs sm:text-sm font-bold shadow-md transition">
               <span>Apurar Votos</span>
               <i class="ph ph-chart-bar-horizontal font-bold"></i>
             </button>
           </div>
         </div>
-        <div class="bg-[#F3EDE2] p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4 border border-[#E2D7C7]">
-          <div class="flex items-center gap-2">
-            <span class="text-xs font-bold uppercase text-stone-600 flex items-center gap-1.5"><i class="ph ph-check-square-offset text-burgundy text-sm"></i> Integrantes & Status dos Votos:</span>
+        <div class="bg-[#F3EDE2] p-3 sm:p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3 sm:gap-4 border border-[#E2D7C7]">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="text-xs font-bold uppercase text-stone-600 flex items-center gap-1.5"><i class="ph ph-check-square-offset text-burgundy text-sm"></i> Integrantes & Status:</span>
             <div id="votingSelectorTabs" class="flex flex-wrap gap-1.5"></div>
           </div>
         </div>
@@ -710,7 +785,7 @@
 
   <div id="toastContainer" class="fixed bottom-5 left-5 z-[70] flex flex-col gap-2 pointer-events-none"></div>
   
-  <div id="versionBadge" class="fixed bottom-3 right-3 text-[11px] text-stone-600 bg-stone-100/90 border border-stone-300 px-2.5 py-0.5 rounded-full font-mono select-none shadow-xs z-30 opacity-80 hover:opacity-100 transition cursor-pointer">v6.1-stable</div>
+  <div id="versionBadge" class="fixed bottom-3 right-3 text-[11px] text-stone-600 bg-stone-100/90 border border-stone-300 px-2.5 py-0.5 rounded-full font-mono select-none shadow-xs z-30 opacity-80 hover:opacity-100 transition">v6.1-stable</div>
 
   <!-- SCRIPTS DA APLICAÇÃO (ordem de dependência) -->
   <script src="js/config.js"></script>

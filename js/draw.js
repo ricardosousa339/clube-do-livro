@@ -186,6 +186,7 @@ async function initiateDraw() {
   window.clubState.drawLogs.push(drawEvent);
   window.clubState.drawEvent = drawEvent;
   window.clubState.winner = winnerData;
+  window.clubState.roundStarted = false;
   window.clubState.updatedAt = Date.now();
 
   // SALVAMENTO SEGURO E GRANULAR:
@@ -196,6 +197,7 @@ async function initiateDraw() {
         'state.drawLogs': window.clubState.drawLogs,
         'state.drawEvent': drawEvent,
         'state.winner': winnerData,
+        'state.roundStarted': false,
         'state.updatedAt': window.clubState.updatedAt
       });
       updateSyncStatus(true);
@@ -272,6 +274,8 @@ function triggerSyncedDraw(eventData) {
       }
 
       window.clubState.winner = eventData.winnerData;
+      window.clubState.roundStarted = false;
+      window._justFinishedDraw = true;
       playSound('winner');
 
       if (window.confetti) {

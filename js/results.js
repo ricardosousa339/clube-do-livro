@@ -24,14 +24,16 @@ function calculateFinalists() {
 }
 
 function calculateAndAdvanceToResults() {
-  const missingVoters = [];
-  window.clubState.members.forEach(m => {
-    if (Object.keys(window.clubState.votes[m.id] || {}).length < window.clubState.members.length - 1) missingVoters.push(m.name);
-  });
-  if (missingVoters.length > 0) showToast(`Votos pendentes de: ${missingVoters.join(', ')}. Mas você pode apurar se todos concordarem.`, 'warning');
+  const access = typeof checkStageAccess === 'function' ? checkStageAccess('results') : { allowed: true };
+  if (!access.allowed) {
+    showToast(access.reason, 'warning');
+    return;
+  }
   playSound('advance');
   changeStage('results');
+  showToast('Apuração concluída! Confira as obras que sobreviveram aos vetos.', 'success');
 }
+
 
 function renderResultsGrid() {
   const tally = calculateFinalists();

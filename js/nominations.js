@@ -472,10 +472,12 @@ function removeBook(memberId, bookKey) {
 }
 
 function proceedToVotingIfReady() {
-  if(window.clubState.members.length < 2) return showToast('É preciso de pelo menos 2 membros para votar.', 'warning');
-  const missing = window.clubState.members.filter(m => !m.book1 || !m.book2);
-  if (missing.length > 0) return showToast(`Faltam indicações de: ${missing.map(m => m.name).join(', ')}.`, 'warning');
+  const access = typeof checkStageAccess === 'function' ? checkStageAccess('voting') : { allowed: true };
+  if (!access.allowed) {
+    return showToast(access.reason, 'warning');
+  }
   playSound('advance');
   changeStage('voting');
   showToast('Fase de exclusão iniciada! Exclua 1 livro de cada colega.', 'success');
 }
+
