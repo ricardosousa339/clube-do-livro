@@ -189,44 +189,177 @@
       pointer-events: none;
     }
 
-    /* Animação de Virada 3D */
-    .page-flip-anim-forward {
-      animation: flipPageForward 0.65s cubic-bezier(0.645, 0.045, 0.355, 1) forwards;
+    /* ==========================================
+       ANIMAÇÃO DE VIRADA DE PÁGINA 3D REALISTA
+       A folha anterior é dobrada e virada enquanto a nova é revelada por baixo
+       ========================================== */
+
+    .tome-flipping-sheet {
+      position: absolute;
+      pointer-events: none;
+      z-index: 35;
+      transform-style: preserve-3d;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      will-change: transform, opacity, filter, box-shadow;
+    }
+
+    /* Desktop: Folha da direita vira para a esquerda (Avançar) */
+    .tome-flip-right-forward {
       transform-origin: left center;
-      transform-style: preserve-3d;
+      animation: flipRightForwardDesktop 0.58s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
     }
 
-    .page-flip-anim-backward {
-      animation: flipPageBackward 0.65s cubic-bezier(0.645, 0.045, 0.355, 1) forwards;
-      transform-origin: right center;
-      transform-style: preserve-3d;
-    }
-
-    @keyframes flipPageForward {
+    @keyframes flipRightForwardDesktop {
       0% {
         transform: rotateY(0deg);
         filter: brightness(1);
+        box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+        opacity: 1;
       }
-      50% {
-        filter: brightness(0.82);
+      35% {
+        transform: rotateY(-65deg);
+        filter: brightness(0.9);
+        box-shadow: -18px 0 25px rgba(0, 0, 0, 0.35);
+        opacity: 1;
+      }
+      75% {
+        transform: rotateY(-135deg);
+        filter: brightness(0.78);
+        box-shadow: -28px 0 35px rgba(0, 0, 0, 0.4);
+        opacity: 0.85;
       }
       100% {
         transform: rotateY(-180deg);
-        filter: brightness(1);
+        filter: brightness(0.7);
+        box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+        opacity: 0;
       }
     }
 
-    @keyframes flipPageBackward {
+    /* Desktop: Folha da esquerda vira para a direita (Retroceder) */
+    .tome-flip-left-backward {
+      transform-origin: right center;
+      animation: flipLeftBackwardDesktop 0.58s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
+    }
+
+    @keyframes flipLeftBackwardDesktop {
       0% {
         transform: rotateY(0deg);
         filter: brightness(1);
+        box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+        opacity: 1;
       }
-      50% {
-        filter: brightness(0.82);
+      35% {
+        transform: rotateY(65deg);
+        filter: brightness(0.9);
+        box-shadow: 18px 0 25px rgba(0, 0, 0, 0.35);
+        opacity: 1;
+      }
+      75% {
+        transform: rotateY(135deg);
+        filter: brightness(0.78);
+        box-shadow: 28px 0 35px rgba(0, 0, 0, 0.4);
+        opacity: 0.85;
       }
       100% {
         transform: rotateY(180deg);
+        filter: brightness(0.7);
+        box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+        opacity: 0;
+      }
+    }
+
+    /* Desktop: Abertura da Capa Fechada */
+    .tome-open-cover {
+      transform-origin: left center;
+      animation: openCoverDesktop 0.62s cubic-bezier(0.35, 0, 0.25, 1) forwards;
+    }
+
+    @keyframes openCoverDesktop {
+      0% {
+        transform: rotateY(0deg);
         filter: brightness(1);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+        opacity: 1;
+      }
+      40% {
+        transform: rotateY(-60deg);
+        filter: brightness(0.88);
+        box-shadow: -20px 25px 45px rgba(0, 0, 0, 0.5);
+        opacity: 1;
+      }
+      80% {
+        transform: rotateY(-130deg);
+        filter: brightness(0.75);
+        opacity: 0.7;
+      }
+      100% {
+        transform: rotateY(-175deg);
+        filter: brightness(0.65);
+        opacity: 0;
+      }
+    }
+
+    /* Mobile: Página inteira vira para a esquerda (Avançar) */
+    .tome-flip-mobile-forward {
+      transform-origin: left center;
+      animation: flipMobileForward 0.52s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
+    }
+
+    @keyframes flipMobileForward {
+      0% {
+        transform: rotateY(0deg);
+        filter: brightness(1);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        opacity: 1;
+      }
+      40% {
+        transform: rotateY(-55deg);
+        filter: brightness(0.88);
+        box-shadow: -18px 10px 30px rgba(0, 0, 0, 0.4);
+        opacity: 1;
+      }
+      80% {
+        transform: rotateY(-110deg);
+        filter: brightness(0.75);
+        opacity: 0.6;
+      }
+      100% {
+        transform: rotateY(-140deg);
+        filter: brightness(0.7);
+        opacity: 0;
+      }
+    }
+
+    /* Mobile: Página inteira vira para a direita (Retroceder) */
+    .tome-flip-mobile-backward {
+      transform-origin: right center;
+      animation: flipMobileBackward 0.52s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
+    }
+
+    @keyframes flipMobileBackward {
+      0% {
+        transform: rotateY(0deg);
+        filter: brightness(1);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        opacity: 1;
+      }
+      40% {
+        transform: rotateY(55deg);
+        filter: brightness(0.88);
+        box-shadow: 18px 10px 30px rgba(0, 0, 0, 0.4);
+        opacity: 1;
+      }
+      80% {
+        transform: rotateY(110deg);
+        filter: brightness(0.75);
+        opacity: 0.6;
+      }
+      100% {
+        transform: rotateY(140deg);
+        filter: brightness(0.7);
+        opacity: 0;
       }
     }
 

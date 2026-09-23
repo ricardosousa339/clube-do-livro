@@ -87,6 +87,7 @@ const HistoryBook = {
 
     this.currentPage = 0; // Inicia com a capa fechada
     this.mobileTab = 'work';
+    this.isAnimating = false;
 
     const modal = document.getElementById('historyBookModal');
     if (!modal) return;
@@ -100,22 +101,150 @@ const HistoryBook = {
   },
 
   close: function() {
+    this.isAnimating = false;
     const modal = document.getElementById('historyBookModal');
     if (modal) modal.classList.add('hidden');
     document.body.style.overflow = '';
     this.removeListeners();
+    const container = document.getElementById('tomeBookContainer');
+    if (container) {
+      container.querySelectorAll('.tome-flipping-sheet').forEach(s => s.remove());
+    }
   },
 
   switchYear: function(newYear) {
     this.open(newYear);
   },
 
+  isAnimating: false,
+
+  navigateTo: function(targetPage, targetTab, direction = 'forward') {
+    if (this.isAnimating) return;
+
+    const totalPages = this.books.length > 0 ? (this.books.length + 2) : 1;
+    if (targetPage < 0 || targetPage >= totalPages) return;
+
+    const container = document.getElementById('tomeBookContainer');
+    if (!container || !container.firstElementChild) {
+      this.currentPage = targetPage;
+      this.mobileTab = targetTab || 'work';
+      this.render();
+      return;
+    }
+
+    // Se já estiver na mesma página e aba, nada a fazer
+    if (targetPage === this.currentPage && (!this.isMobile || targetTab === this.mobileTab)) {
+      return;
+    }
+
+    this.isAnimating = true;
+    this.playPageTurnSound();
+
+    const isMob = window.innerWidth < 768;
+    this.isMobile = isMob;
+
+    // Remove eventuais folhas de transição residuais
+    const oldSheets = container.querySelectorAll('.tome-flipping-sheet');
+    oldSheets.forEach(s => s.remove());
+
+    // 1. Identifica e clona o elemento ANTERIOR que sofrerá a animação 3D de virada
+    let sheet = null;
+    let animClass = '';
+
+    if (!isMob) {
+      // MODO DESKTOP (Spread duplo com lombada central):
+      if (this.currentPage === 0 && direction === 'forward') {
+        // Saindo da Capa fechada: a capa de couro se abre para a esquerda
+        const coverEl = container.querySelector('.tome-leather') || container.firstElementChild;
+        if (coverEl) {
+          sheet = coverEl.cloneNode(true);
+          sheet.style.position = 'absolute';
+          sheet.style.inset = '0';
+          sheet.style.width = '100%';
+          sheet.style.height = '100%';
+          animClass = 'tome-open-cover';
+        }
+      } else if (direction === 'forward') {
+        // Avançando no miolo: a folha direita anterior dobra e vira para a esquerda
+        const rightPage = container.querySelector('.tome-page-right');
+        if (rightPage) {
+          sheet = rightPage.cloneNode(true);
+          sheet.style.position = 'absolute';
+          sheet.style.top = '0';
+          sheet.style.bottom = '0';
+          sheet.style.right = '0';
+          sheet.style.width = '50%';
+          sheet.style.height = '100%';
+          animClass = 'tome-flip-right-forward';
+        } else {
+          sheet = container.firstElementChild.cloneNode(true);
+          sheet.style.position = 'absolute';
+          sheet.style.inset = '0';
+          sheet.style.width = '100%';
+          sheet.style.height = '100%';
+          animClass = 'tome-open-cover';
+        }
+      } else {
+        // Retrocedendo no miolo ou voltando para a capa: a folha esquerda anterior dobra e vira para a direita
+        const leftPage = container.querySelector('.tome-page-left');
+        if (leftPage) {
+          sheet = leftPage.cloneNode(true);
+          sheet.style.position = 'absolute';
+          sheet.style.top = '0';
+          sheet.style.bottom = '0';
+          sheet.style.left = '0';
+          sheet.style.width = '50%';
+          sheet.style.height = '100%';
+          animClass = 'tome-flip-left-backward';
+        } else {
+          sheet = container.firstElementChild.cloneNode(true);
+          sheet.style.position = 'absolute';
+          sheet.style.inset = '0';
+          sheet.style.width = '100%';
+          sheet.style.height = '100%';
+          animClass = 'tome-flip-left-backward';
+        }
+      }
+    } else {
+      // MODO MOBILE (Página única vertical):
+      sheet = container.firstElementChild.cloneNode(true);
+      sheet.style.position = 'absolute';
+      sheet.style.inset = '0';
+      sheet.style.width = '100%';
+      sheet.style.height = '100%';
+      animClass = direction === 'forward' ? 'tome-flip-mobile-forward' : 'tome-flip-mobile-backward';
+    }
+
+    // 2. Atualiza estado
+    this.currentPage = targetPage;
+    this.mobileTab = targetTab || 'work';
+
+    // 3. Renderiza o NOVO conteúdo na base (por baixo da folha anterior)
+    this.renderBookContent();
+    this.renderFooter();
+
+    // 4. Insere a folha clonada anterior por cima para executar a virada 3D
+    if (sheet) {
+      sheet.classList.add('tome-flipping-sheet', animClass);
+      sheet.style.pointerEvents = 'none';
+      container.appendChild(sheet);
+
+      const animDuration = isMob ? 530 : 600;
+      setTimeout(() => {
+        if (sheet && sheet.parentNode) {
+          sheet.remove();
+        }
+        this.isAnimating = false;
+      }, animDuration);
+    } else {
+      this.isAnimating = false;
+    }
+  },
+
   setMobileTab: function(tab) {
     if (this.mobileTab !== tab) {
-      this.mobileTab = tab;
-      this.playPageTurnSound();
-      this.animateFlip(tab === 'chronicle' ? 'forward' : 'backward');
-      this.render();
+      const dir = tab === 'chronicle' ? 'forward' : 'backward';
+      this.navigateTo(this.currentPage, tab, dir);
     }
   },
 
@@ -127,20 +256,13 @@ const HistoryBook = {
     // No celular, se estiver em uma leitura (pág 2 a N+1) e na aba "Obra", vira primeiro para a "Crônica"
     if (this.isMobile && this.currentPage >= 2 && this.currentPage < totalPages - 1) {
       if (this.mobileTab === 'work') {
-        this.mobileTab = 'chronicle';
-        this.playPageTurnSound();
-        this.animateFlip('forward');
-        this.render();
+        this.navigateTo(this.currentPage, 'chronicle', 'forward');
         return;
       }
     }
 
     if (this.currentPage < totalPages - 1) {
-      this.currentPage++;
-      this.mobileTab = 'work';
-      this.playPageTurnSound();
-      this.animateFlip('forward');
-      this.render();
+      this.navigateTo(this.currentPage + 1, 'work', 'forward');
     }
   },
 
@@ -151,48 +273,23 @@ const HistoryBook = {
     // No celular, se estiver em uma leitura e na aba "Crônica", volta primeiro para a "Obra"
     if (this.isMobile && this.currentPage >= 2 && this.currentPage < totalPages - 1) {
       if (this.mobileTab === 'chronicle') {
-        this.mobileTab = 'work';
-        this.playPageTurnSound();
-        this.animateFlip('backward');
-        this.render();
+        this.navigateTo(this.currentPage, 'work', 'backward');
         return;
       }
     }
 
     if (this.currentPage > 0) {
-      this.currentPage--;
-      if (this.isMobile && this.currentPage >= 2 && this.currentPage < totalPages - 1) {
-        this.mobileTab = 'chronicle';
-      } else {
-        this.mobileTab = 'work';
-      }
-      this.playPageTurnSound();
-      this.animateFlip('backward');
-      this.render();
+      const targetPage = this.currentPage - 1;
+      const targetTab = (this.isMobile && targetPage >= 2 && targetPage < totalPages - 1) ? 'chronicle' : 'work';
+      this.navigateTo(targetPage, targetTab, 'backward');
     }
   },
 
   goToPage: function(pageIdx, tab = 'work') {
     if (pageIdx >= 0) {
-      const dir = pageIdx > this.currentPage ? 'forward' : 'backward';
-      this.currentPage = pageIdx;
-      this.mobileTab = tab;
-      this.playPageTurnSound();
-      this.animateFlip(dir);
-      this.render();
+      const dir = pageIdx >= this.currentPage ? 'forward' : 'backward';
+      this.navigateTo(pageIdx, tab, dir);
     }
-  },
-
-  animateFlip: function(direction) {
-    const container = document.getElementById('tomeBookContainer');
-    if (!container) return;
-    const animClass = direction === 'forward' ? 'page-flip-anim-forward' : 'page-flip-anim-backward';
-    container.classList.remove('page-flip-anim-forward', 'page-flip-anim-backward');
-    void container.offsetWidth; // Trigger reflow
-    container.classList.add(animClass);
-    setTimeout(() => {
-      container.classList.remove(animClass);
-    }, 650);
   },
 
   // Renderiza toda a interface do livro 3D
